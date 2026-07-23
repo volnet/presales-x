@@ -18,6 +18,7 @@ const attributeValue=(file,field)=>field==='version'?(file.attributes?.version||
 function fileRef(submission,file){return {key:`${submission.id}|${file.zipPath}`,supplier:submission.supplier,zipName:submission.zipName,path:file.zipPath,name:file.name,kind:file.kind,size:file.size,sha256:file.sha256};}
 function groupBy(items,keyOf){const groups=new Map();for(const item of items){const key=keyOf(item);if(!key)continue;if(!groups.has(key))groups.set(key,[]);groups.get(key).push(item);}return groups;}
 function crossSupplier(items){return new Set(items.map(item=>item.supplier)).size>1;}
+function hamming(a,b){try{if(!a||!b)return Infinity;let value=BigInt(`0x${a}`)^BigInt(`0x${b}`),count=0;while(value){count++;value&=value-1n;}return count;}catch{return Infinity;}}
 
 function buildAudit(submissions=[]){
   const wrapped=submissions.flatMap(submission=>submission.files.map(file=>({submission,file,...fileRef(submission,file)})));
@@ -30,7 +31,16 @@ function buildAudit(submissions=[]){
   const attributeBuckets=new Map();
   for(const item of wrapped){for(const [field,label,weight] of ATTRIBUTE_DEFS[item.kind]||[]){const value=attributeValue(item.file,field),normalized=normalize(value);if(!normalized)continue;const key=`${field}:${normalized}`;if(!attributeBuckets.has(key))attributeBuckets.set(key,{field,label,weight,value:String(value),files:[]});const bucket=attributeBuckets.get(key);bucket.weight=Math.max(bucket.weight,weight);bucket.files.push(fileRef(item.submission,item.file));}}
   const attributeMatches=[...attributeBuckets.values()].filter(group=>group.files.length>1&&crossSupplier(group.files)).map(group=>{const kinds=[...new Set(group.files.map(file=>file.kind))];return {...group,kind:kinds.length===1?kinds[0]:'mixed',kinds,riskLevel:riskLevel(group.weight),id:idFor(`attribute:${group.field}:${normalize(group.value)}`),suppliers:[...new Set(group.files.map(file=>file.supplier))]};}).sort((a,b)=>b.weight-a.weight||b.files.length-a.files.length);
-  return {createdAt:new Date().toISOString(),supplierStats,identicalPackages,exactFiles,attributeMatches,summary:{supplierCount:submissions.length,fileCount:wrapped.length,totalSize:submissions.reduce((sum,item)=>sum+item.totalSize,0),totalSizeLabel:formatBytes(submissions.reduce((sum,item)=>sum+item.totalSize,0)),identicalPackageGroups:identicalPackages.length,exactFileGroups:exactFiles.length,attributeMatchGroups:attributeMatches.length}};
+  const similarityMatches=[],seen=new Set();
+  for(let i=0;i<wrapped.length;i++)for(let j=i+1;j<wrapped.length;j++){
+    const a=wrapped[i],b=wrapped[j];if(a.supplier===b.supplier)continue;
+    const distance=hamming(a.file.attributes?.textFingerprint,b.file.attributes?.textFingerprint);
+    if(distance<=3&&a.file.attributes?.textFingerprint){const key=`text:${a.key}:${b.key}`;if(!seen.has(key)){seen.add(key);similarityMatches.push({id:idFor(key),kind:'simhash',label:'文本 SimHash 相似',value:`汉明距离 ${distance}`,weight:55,riskLevel:'中风险',suppliers:[a.supplier,b.supplier],files:[fileRef(a.submission,a.file),fileRef(b.submission,b.file)]});}}
+    const mediaA=new Set((a.file.attributes?.mediaHashes||[]).map(normalize).filter(Boolean));
+    const common=[...(b.file.attributes?.mediaHashes||[])].map(normalize).filter(hash=>mediaA.has(hash));
+    for(const hash of [...new Set(common)].slice(0,5)){const key=`media:${a.key}:${b.key}:${hash}`;if(!seen.has(key)){seen.add(key);similarityMatches.push({id:idFor(key),kind:'media',label:'相同图片与媒体指纹',value:hash,weight:80,riskLevel:'高风险',suppliers:[a.supplier,b.supplier],files:[fileRef(a.submission,a.file),fileRef(b.submission,b.file)]});}}
+  }
+  return {createdAt:new Date().toISOString(),supplierStats,identicalPackages,exactFiles,attributeMatches,similarityMatches,summary:{supplierCount:submissions.length,fileCount:wrapped.length,totalSize:submissions.reduce((sum,item)=>sum+item.totalSize,0),totalSizeLabel:formatBytes(submissions.reduce((sum,item)=>sum+item.totalSize,0)),identicalPackageGroups:identicalPackages.length,exactFileGroups:exactFiles.length,attributeMatchGroups:attributeMatches.length,similarityMatchGroups:similarityMatches.length}};
 }
 
 module.exports={buildAudit,ATTRIBUTE_DEFS,formatBytes,riskLevel};

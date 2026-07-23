@@ -7,6 +7,34 @@ const path=require('node:path');
 
 const read=file=>fs.readFileSync(path.join(__dirname,'..',file),'utf8');
 
+test('watermark workspace and companion are first-class local features',()=>{
+  const html=read('src/ui/index.html'),app=read('src/ui/app.js'),main=read('src/main.js');
+  assert.match(html,/data-mode="watermark"/);
+  assert.match(html,/id="watermarkWorkspace"/);
+  assert.doesNotMatch(html,/id="options"/);
+  assert.match(app,/pickWatermarkFiles/);
+  assert.match(app,/addSanitizationFiles/);
+  assert.match(main,/createCompanion/);
+  assert.match(main,/inspectSanitizationFiles/);
+  assert.match(main,/sanitizeOfficeFile/);
+  assert.match(main,/showSaveDialog/);
+  assert.doesNotMatch(main,/findSoffice|--headless|LibreOffice/);
+  assert.match(html,/sanitize-layout/);
+  assert.match(app,/renderSanitizationDetail/);
+  assert.match(html,/Word、Excel、PDF/);
+  assert.doesNotMatch(`${html}\n${app}\n${main}\n${read('src/preload.js')}`,/sanitizePreview|renderDocumentPreview|openWith|docx-preview|文件预览/);
+  assert.doesNotMatch(read('src/companion/index.html'),/PreSalesX|id="bubble"/);
+  assert.doesNotMatch(read('src/companion/app.js'),/textContent|bubble/);
+  assert.match(main,/width:size,height:size,useContentSize:true/);
+  assert.match(main,/roundedCorners:false/);
+  assert.match(main,/focusable:false/);
+  assert.match(main,/setBackgroundMaterial\('none'\)/);
+  assert.match(read('src/companion/style.css'),/\.avatar-button:focus,[^{]*\.avatar-button:focus-visible[^{]*\{outline:0/);
+  assert.match(read('scripts/after-pack.js'),/--set-icon/);
+  assert.match(read('scripts/after-pack.js'),/presalesx-logo\.ico/);
+  for(const state of ['welcome','celebrate','focus','encourage','concern','sleepy'])assert.ok(fs.existsSync(path.join(__dirname,'..','src','companion','assets',`companion-${state}.png`)));
+});
+
 test('saving metadata keeps the active property editor mounted and editable',()=>{
   const source=read('src/ui/app.js');
   const saveBranch=source.slice(source.indexOf("if(action==='save')"),source.indexOf("}catch(e){showSaveStatus"));
@@ -106,13 +134,13 @@ test('visible product branding uses PreSalesX consistently',()=>{
   assert.doesNotMatch(source,forbidden);
 });
 
-test('application and release artifacts use version 1.2.0 consistently',()=>{
+test('application and release artifacts use version 1.3.0 consistently',()=>{
   const manifest=JSON.parse(read('package.json'));
   const html=read('src/ui/index.html');
   const analyzer=read('src/analyzer.js');
   const workflow=read('.github/workflows/release.yml');
-  assert.equal(manifest.version,'1.2.0');
-  assert.match(html,/PreSalesX 1\.2\.0/);
+  assert.equal(manifest.version,'1.3.0');
+  assert.match(html,/PreSalesX 1\.3\.0/);
   assert.match(analyzer,/appVersion:APP_VERSION/);
   assert.match(manifest.scripts['dist:win'],/--win zip --x64/);
   assert.match(manifest.scripts['dist:mac'],/--mac zip --universal/);
