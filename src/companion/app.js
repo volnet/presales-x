@@ -1,13 +1,73 @@
 'use strict';
-const names=['welcome','celebrate','focus','encourage','concern','sleepy'],button=document.querySelector('#avatarButton'),avatar=document.querySelector('#avatar');
-let current='welcome',timer,dragged=false;
-function show(name){if(!names.includes(name))name='welcome';current=name;button.classList.add('changing');setTimeout(()=>{avatar.src=`assets/companion-${name}.png`;button.classList.remove('changing');},120);}
-function scheduleMotion(){clearTimeout(timer);timer=setTimeout(()=>{show(names[Math.floor(Math.random()*names.length)]);scheduleMotion();},4000+Math.random()*6000);}
-button.addEventListener('pointerdown',event=>{if(event.button!==0)return;dragged=false;button.classList.add('dragging');button.setPointerCapture(event.pointerId);window.companion.startDrag();});
-button.addEventListener('pointermove',()=>{if(button.classList.contains('dragging'))dragged=true;});
-button.addEventListener('pointerup',event=>{button.releasePointerCapture(event.pointerId);button.classList.remove('dragging');window.companion.stopDrag();});
-button.addEventListener('click',()=>{if(!dragged)show(names[(names.indexOf(current)+1)%names.length]);});
-button.addEventListener('dblclick',event=>{event.preventDefault();if(!dragged)window.companion.openMain();});
-window.addEventListener('blur',()=>{button.classList.remove('dragging');window.companion.stopDrag();});
-window.companion.onEmotion(payload=>show(payload.name));
-show('welcome');scheduleMotion();
+
+const stage=document.querySelector('#stage');
+const hitbox=document.querySelector('#robotHitbox');
+const bubble=document.querySelector('#bubble');
+const transitions={
+  entrance:{next:'welcome',after:2600},
+  welcome:{next:'idle',after:4200},
+  wake:{next:'greet',after:950},
+  greet:{next:'idle',after:2300},
+  think:{next:'thinking',after:900},
+  insight:{next:'idle',after:2600}
+};
+let state='entrance',transitionTimer,idleTimer,bubbleTimer,dragging=false,moved=false;
+
+function say(text,duration=2800){
+  clearTimeout(bubbleTimer);
+  bubble.classList.remove('visible');
+  if(!text)return;
+  bubble.textContent=text;
+  requestAnimationFrame(()=>bubble.classList.add('visible'));
+  bubbleTimer=setTimeout(()=>bubble.classList.remove('visible'),duration);
+}
+function scheduleSleep(delay=12000){
+  clearTimeout(idleTimer);
+  idleTimer=setTimeout(()=>setState('sleep'),delay);
+}
+function setState(next,message=''){
+  clearTimeout(transitionTimer);
+  clearTimeout(idleTimer);
+  state=next;
+  stage.dataset.state=next;
+  if(message)say(message);
+  if(next==='welcome')say('嗨，我是你的售前伙伴。准备好一起开始了吗？',3600);
+  if(next==='greet'&&!message)say('我醒啦，需要我一起看看吗？',2400);
+  if(next==='insight'&&!message)say('有思路了！',2200);
+  const transition=transitions[next];
+  if(transition)transitionTimer=setTimeout(()=>setState(transition.next),transition.after);
+  else if(next==='idle')scheduleSleep();
+}
+function react(kind,message=''){
+  if(kind==='activity'){
+    if(state==='sleep'||state==='sleeping')setState('wake',message);
+    else setState('greet',message);
+    return;
+  }
+  if(kind==='think')setState(state==='sleep'?'wake':'think',message);
+  else if(kind==='insight')setState('insight',message);
+}
+
+hitbox.addEventListener('pointerdown',event=>{
+  if(event.button!==0)return;
+  dragging=true;moved=false;
+  hitbox.setPointerCapture(event.pointerId);
+  hitbox.classList.add('dragging');
+  window.companion.startDrag();
+});
+hitbox.addEventListener('pointermove',()=>{if(dragging)moved=true;});
+function stopDrag(event){
+  if(!dragging)return;
+  dragging=false;
+  if(hitbox.hasPointerCapture(event.pointerId))hitbox.releasePointerCapture(event.pointerId);
+  hitbox.classList.remove('dragging');
+  window.companion.stopDrag();
+}
+hitbox.addEventListener('pointerup',stopDrag);
+hitbox.addEventListener('pointercancel',stopDrag);
+hitbox.addEventListener('click',()=>{if(!moved)react('activity','我在，随时可以帮忙。');});
+hitbox.addEventListener('dblclick',event=>{event.preventDefault();if(!moved)window.companion.openMain();});
+hitbox.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();react('activity');}});
+window.addEventListener('blur',()=>{if(dragging){dragging=false;hitbox.classList.remove('dragging');window.companion.stopDrag();}});
+window.companion.onMotion(payload=>react(payload.name,payload.message));
+setState('entrance');

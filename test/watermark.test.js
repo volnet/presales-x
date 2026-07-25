@@ -5,7 +5,6 @@ const fs=require('node:fs').promises;
 const path=require('node:path');
 const os=require('node:os');
 const yazl=require('yazl');
-const {PDFDocument,PDFName,PDFString,degrees}=require('pdf-lib');
 const {stripWordWatermarks,stripExcelBackgrounds,inspectSanitizationFile,sanitizeOfficeFile}=require('../src/watermark');
 
 test('Word header watermark markup is removed without deleting ordinary shapes',()=>{
@@ -40,30 +39,25 @@ test('file sanitization lists watermark, comments and revision state before crea
   assert.ok(inspection.items.some(item=>item.id==='office-metadata-author'));
   assert.equal(inspection.items.find(item=>item.type==='watermark').selected,true);
   assert.equal(inspection.items.find(item=>item.type==='comment').selected,false);
-  const requestedDestination=path.join(directory,'自定义脱敏文件名.docx'),result=await sanitizeOfficeFile(source,directory,inspection.items.map(item=>item.id),requestedDestination);
+  const requestedDestination=path.join(directory,'自定义脱敏文件名.docx'),fileDate='2020-05-06T07:08:09.000Z',result=await sanitizeOfficeFile(source,directory,inspection.items.map(item=>item.id),requestedDestination,{metadataUpdates:{author:'123匿名作者',lastEditor:'',title:'脱敏后的项目名称'},fileTimeUpdates:{created:fileDate,modified:fileDate,accessed:fileDate}});
   assert.equal(result.status,'cleaned');assert.equal(result.originalUntouched,true);
   assert.equal(result.destination,requestedDestination);
+  const sanitizedStat=await fs.stat(requestedDestination);
+  assert.ok(Math.abs(sanitizedStat.birthtime.getTime()-new Date(fileDate).getTime())<2000);
+  assert.ok(Math.abs(sanitizedStat.mtime.getTime()-new Date(fileDate).getTime())<2000);
+  assert.ok(Math.abs(sanitizedStat.atime.getTime()-new Date(fileDate).getTime())<2000);
+  const sanitizedInspection=await inspectSanitizationFile(requestedDestination);
+  assert.equal(sanitizedInspection.items.find(item=>item.field==='author').detail,'123匿名作者');
+  assert.equal(sanitizedInspection.items.find(item=>item.field==='lastEditor').detail,'');
+  assert.equal(sanitizedInspection.items.find(item=>item.field==='title').detail,'脱敏后的项目名称');
+  const verifiedStat=await fs.stat(requestedDestination);
+  assert.ok(Math.abs(verifiedStat.atime.getTime()-new Date(fileDate).getTime())<2000);
+  const saveResult=await sanitizeOfficeFile(source,directory,[inspection.items.find(item=>item.type==='watermark').id],source,{overwrite:true});
+  assert.equal(saveResult.status,'cleaned');assert.equal(saveResult.originalUntouched,false);
+  assert.equal(saveResult.destination,source);
+  assert.equal((await inspectSanitizationFile(source)).items.filter(item=>item.type==='watermark').length,0);
   await fs.rm(directory,{recursive:true,force:true});
 });
-
-
-test('PDF sanitization exposes and removes document properties into a new copy',async()=>{
-  const directory=await fs.mkdtemp(path.join(os.tmpdir(),'presalesx-pdf-sanitize-')),source=path.join(directory,'sample.pdf'),document=await PDFDocument.create(),page=document.addPage([600,800]);
-  page.drawText('CONFIDENTIAL',{x:80,y:380,size:58,rotate:degrees(35),opacity:.24});
-  page.drawText('ordinary translucent note',{x:40,y:100,size:12,opacity:.5});
-  const annotation=document.context.obj({Type:'Annot',Subtype:'Text',Rect:[40,700,60,720],Contents:PDFString.of('Word export comment')}),annotationRef=document.context.register(annotation),annots=document.context.obj([annotationRef]);page.node.set(PDFName.of('Annots'),annots);
-  document.setAuthor('Sensitive Author');document.setCreator('Sensitive Tool');await fs.writeFile(source,await document.save());
-  const inspection=await inspectSanitizationFile(source);
-  assert.equal(inspection.kind,'pdf');
-  assert.ok(inspection.items.some(item=>item.id==='pdf-metadata-author'));
-  assert.ok(inspection.items.some(item=>item.contentWatermark&&/CONFIDENTIAL/.test(item.detail)));
-  assert.equal(inspection.items.filter(item=>item.contentWatermark).length,1);
-  assert.ok(inspection.items.some(item=>item.type==='comment'&&/Word export comment/.test(item.detail)));
-  const result=await sanitizeOfficeFile(source,directory,inspection.items.map(item=>item.id));
-  assert.equal(result.status,'cleaned');assert.equal(result.originalUntouched,true);
-  const cleaned=await PDFDocument.load(await fs.readFile(result.destination),{updateMetadata:false});
-  assert.equal(cleaned.getAuthor(),undefined);
-  const reinspection=await inspectSanitizationFile(result.destination);
-  assert.equal(reinspection.items.filter(item=>item.type==='watermark'||item.type==='comment').length,0);
-  await fs.rm(directory,{recursive:true,force:true});
+test('PDF is explicitly excluded from file sanitization',async()=>{
+  await assert.rejects(()=>inspectSanitizationFile(path.join(os.tmpdir(),'sample.pdf')),/暂仅支持 Word 和 Excel/);
 });

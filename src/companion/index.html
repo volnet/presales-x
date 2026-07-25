@@ -1,10 +1,85 @@
 <!doctype html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title></title><link rel="stylesheet" href="style.css"></head>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title></title>
+  <link rel="stylesheet" href="style.css">
+</head>
 <body>
-  <main id="companion">
-    <button id="avatarButton" class="avatar-button" aria-label="数字伙伴">
-      <img id="avatar" src="assets/companion-welcome.png" alt="">
-    </button>
+  <main id="stage" data-state="entrance">
+    <div id="bubble" class="bubble" aria-live="polite"></div>
+    <div id="robotHitbox" class="robot-hitbox" role="button" tabindex="0" aria-label="数字伙伴">
+      <svg id="robot" viewBox="0 0 180 190" aria-hidden="true">
+        <defs>
+          <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#fff"/>
+            <stop offset=".38" stop-color="#dce5f4"/>
+            <stop offset=".72" stop-color="#8999b3"/>
+            <stop offset="1" stop-color="#f7fbff"/>
+          </linearGradient>
+          <radialGradient id="visor" cx=".5" cy=".38" r=".72">
+            <stop offset="0" stop-color="#173f81"/>
+            <stop offset=".62" stop-color="#071b45"/>
+            <stop offset="1" stop-color="#020918"/>
+          </radialGradient>
+          <filter id="blueGlow" x="-80%" y="-80%" width="260%" height="260%">
+            <feGaussianBlur stdDeviation="2.2" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <g class="orbit">
+          <ellipse cx="90" cy="105" rx="72" ry="28" fill="none" stroke="#4ba8ff" stroke-width="2.4"/>
+          <circle cx="156" cy="94" r="4" fill="#fff" filter="url(#blueGlow)"/>
+        </g>
+        <g class="shadow"><ellipse cx="90" cy="177" rx="39" ry="6" fill="#102b55" opacity=".2"/></g>
+        <g class="body">
+          <g class="leg leg-left">
+            <rect x="60" y="128" width="22" height="38" rx="10" fill="url(#metal)" stroke="#50627f"/>
+            <path d="M57 159h27q5 0 7 9H55q-2-5 2-9z" fill="url(#metal)" stroke="#50627f"/>
+          </g>
+          <g class="leg leg-right">
+            <rect x="98" y="128" width="22" height="38" rx="10" fill="url(#metal)" stroke="#50627f"/>
+            <path d="M96 159h27q5 0 7 9H94q-2-5 2-9z" fill="url(#metal)" stroke="#50627f"/>
+          </g>
+          <g class="torso">
+            <path d="M62 90q28-17 56 0l-7 48q-21 16-42 0z" fill="url(#metal)" stroke="#50627f" stroke-width="1.5"/>
+            <path d="M73 101l17-9 17 9-17 27z" fill="#0c2860" stroke="#55afff"/>
+            <path d="M78 102l24 20m0-20-24 20" stroke="#7bc7ff" stroke-width="3" filter="url(#blueGlow)"/>
+          </g>
+          <g class="arm arm-left">
+            <rect x="42" y="91" width="20" height="42" rx="10" fill="url(#metal)" stroke="#50627f"/>
+            <circle cx="52" cy="132" r="10" fill="url(#metal)" stroke="#50627f"/>
+          </g>
+          <g class="arm arm-right">
+            <rect x="118" y="91" width="20" height="42" rx="10" fill="url(#metal)" stroke="#50627f"/>
+            <circle cx="128" cy="132" r="10" fill="url(#metal)" stroke="#50627f"/>
+          </g>
+          <g class="head">
+            <rect x="43" y="34" width="94" height="70" rx="35" fill="url(#metal)" stroke="#50627f" stroke-width="1.5"/>
+            <rect x="50" y="45" width="80" height="49" rx="24" fill="url(#visor)" stroke="#4c8bd9" stroke-width="1.5"/>
+            <g class="face face-awake" fill="none" stroke="#70d8ff" stroke-width="4" stroke-linecap="round" filter="url(#blueGlow)">
+              <path d="M68 68q8-8 16 0"/><path d="M98 68q8-8 16 0"/>
+            </g>
+            <g class="face face-sleep" fill="none" stroke="#70d8ff" stroke-width="3" stroke-linecap="round">
+              <path d="M68 72h15"/><path d="M98 72h15"/>
+            </g>
+            <g class="face face-think" fill="#70d8ff" filter="url(#blueGlow)">
+              <circle cx="76" cy="69" r="3.5"/><circle cx="106" cy="69" r="3.5"/>
+            </g>
+          </g>
+        </g>
+        <g class="idea" filter="url(#blueGlow)">
+          <path d="M139 34l5-10m5 15 9-6m-17 15 11 2" stroke="#7bd7ff" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="137" cy="39" r="5" fill="#fff"/>
+        </g>
+        <g class="zzz" fill="#70bfff" font-family="Arial,sans-serif" font-weight="700">
+          <text x="132" y="51" font-size="12">Z</text>
+          <text x="145" y="37" font-size="16">Z</text>
+        </g>
+      </svg>
+    </div>
   </main>
   <script src="app.js"></script>
-</body></html>
+</body>
+</html>
