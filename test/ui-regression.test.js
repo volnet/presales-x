@@ -61,7 +61,15 @@ test('watermark workspace and companion are first-class local features',()=>{
   assert.match(read('scripts/after-pack.js'),/presalesx-logo\.ico/);
   const companionCss=read('src/companion/style.css');
   for(const part of ['head','torso','arm-left','arm-right','leg-left','leg-right','orbit'])assert.match(companionHtml,new RegExp(`class="[^"]*${part}`));
-  for(const motion of ['fly-in','land','lie-down','wake-up','ponder','idea-pop'])assert.match(companionCss,new RegExp(`@keyframes ${motion}`));
+  for(const motion of ['arrive','landing','lie-down','wake-up','ponder','idea-pop'])assert.match(companionCss,new RegExp(`@keyframes ${motion}`));
+});
+
+test('refactored application shell preserves named grid areas',()=>{
+  const css=read('src/ui/refactor.css');
+  assert.match(css,/"title title"\s+58px/);
+  assert.match(css,/"rail work"\s+minmax\(0,\s*1fr\)/);
+  assert.match(css,/"status status"\s+26px/);
+  assert.doesNotMatch(css,/\.app-shell\s*\{[^}]*grid-template:\s*52px\s+1fr\s+24px\s*\//s);
 });
 
 test('saving metadata keeps the active property editor mounted and editable',()=>{

@@ -4,12 +4,12 @@ const stage=document.querySelector('#stage');
 const hitbox=document.querySelector('#robotHitbox');
 const bubble=document.querySelector('#bubble');
 const transitions={
-  entrance:{next:'welcome',after:2600},
-  welcome:{next:'idle',after:4200},
-  wake:{next:'greet',after:950},
-  greet:{next:'idle',after:2300},
-  think:{next:'thinking',after:900},
-  insight:{next:'idle',after:2600}
+  entrance:{next:'welcome',after:1400},
+  welcome:{next:'idle',after:3300},
+  wake:{next:'greet',after:720},
+  greet:{next:'idle',after:1500},
+  think:{next:'thinking',after:460},
+  insight:{next:'idle',after:1900}
 };
 let state='entrance',transitionTimer,idleTimer,bubbleTimer,dragging=false,moved=false;
 
@@ -21,7 +21,7 @@ function say(text,duration=2800){
   requestAnimationFrame(()=>bubble.classList.add('visible'));
   bubbleTimer=setTimeout(()=>bubble.classList.remove('visible'),duration);
 }
-function scheduleSleep(delay=12000){
+function scheduleSleep(delay=18000){
   clearTimeout(idleTimer);
   idleTimer=setTimeout(()=>setState('sleep'),delay);
 }

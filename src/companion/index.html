@@ -13,15 +13,16 @@
       <svg id="robot" viewBox="0 0 180 190" aria-hidden="true">
         <defs>
           <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="#fff"/>
-            <stop offset=".38" stop-color="#dce5f4"/>
-            <stop offset=".72" stop-color="#8999b3"/>
-            <stop offset="1" stop-color="#f7fbff"/>
+            <stop offset="0" stop-color="#ffffff"/>
+            <stop offset=".28" stop-color="#eef5ff"/>
+            <stop offset=".62" stop-color="#9aabc4"/>
+            <stop offset=".82" stop-color="#61728e"/>
+            <stop offset="1" stop-color="#f8fbff"/>
           </linearGradient>
           <radialGradient id="visor" cx=".5" cy=".38" r=".72">
-            <stop offset="0" stop-color="#173f81"/>
-            <stop offset=".62" stop-color="#071b45"/>
-            <stop offset="1" stop-color="#020918"/>
+            <stop offset="0" stop-color="#194c9c"/>
+            <stop offset=".45" stop-color="#071f51"/>
+            <stop offset="1" stop-color="#010713"/>
           </radialGradient>
           <filter id="blueGlow" x="-80%" y="-80%" width="260%" height="260%">
             <feGaussianBlur stdDeviation="2.2" result="blur"/>
@@ -44,8 +45,9 @@
           </g>
           <g class="torso">
             <path d="M62 90q28-17 56 0l-7 48q-21 16-42 0z" fill="url(#metal)" stroke="#50627f" stroke-width="1.5"/>
-            <path d="M73 101l17-9 17 9-17 27z" fill="#0c2860" stroke="#55afff"/>
+            <path class="core-shell" d="M73 101l17-9 17 9-17 27z" fill="#081f51" stroke="#55afff"/>
             <path d="M78 102l24 20m0-20-24 20" stroke="#7bc7ff" stroke-width="3" filter="url(#blueGlow)"/>
+            <circle class="core-light" cx="90" cy="111" r="4.5" fill="#eaf8ff" filter="url(#blueGlow)"/>
           </g>
           <g class="arm arm-left">
             <rect x="42" y="91" width="20" height="42" rx="10" fill="url(#metal)" stroke="#50627f"/>
