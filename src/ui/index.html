@@ -20,6 +20,7 @@
       <button class="activity" data-home="files" title="文件属性编辑器"><span>▤</span><small>编辑</small></button>
       <button class="activity" data-home="watermark" title="文件脱敏"><span>◇</span><small>脱敏</small></button>
       <div class="activity-spacer"></div>
+      <button id="showCompanion" class="companion-launcher" title="显示宠物" aria-label="显示宠物" hidden><svg viewBox="0 0 44 44" aria-hidden="true"><defs><linearGradient id="launcherFur" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3c4654"/><stop offset=".55" stop-color="#171c24"/><stop offset="1" stop-color="#070a0f"/></linearGradient></defs><path d="M7 17 10 5l10 9m17 3L34 5 24 14" fill="url(#launcherFur)" stroke="#05070b" stroke-width="1.5" stroke-linejoin="round"/><path d="m10 8 2 7 5-2m17-5-2 7-5-2" fill="#a95e54"/><circle cx="22" cy="23" r="15.5" fill="url(#launcherFur)" stroke="#05070b" stroke-width="1.5"/><path d="M11 24q3-8 11-5 8-3 11 5 0 11-11 13-11-2-11-13" fill="#e2a362"/><ellipse cx="16.5" cy="21" rx="4" ry="5" fill="#07101c"/><ellipse cx="27.5" cy="21" rx="4" ry="5" fill="#07101c"/><circle cx="15.3" cy="19.4" r="1.5" fill="#fff"/><circle cx="26.3" cy="19.4" r="1.5" fill="#fff"/><circle cx="17.8" cy="22.8" r=".7" fill="#64cfff"/><circle cx="28.8" cy="22.8" r=".7" fill="#64cfff"/><path d="M18.5 27q3.5-3 7 0-1 4-3.5 4t-3.5-4" fill="#11151b"/><path d="M22 31q-3 3-6 0m6 0q3 3 6 0" fill="none" stroke="#4b2c21" stroke-width="1.6" stroke-linecap="round"/><path d="M16 35q6 3 12 0" fill="none" stroke="#2a79ff" stroke-width="2.3" stroke-linecap="round"/><path d="m22 34 2 2-2 2-2-2z" fill="#8de5ff" stroke="#1475df" stroke-width=".7"/></svg></button>
       <button id="newWorkspace" class="activity" title="新建工作台"><span>＋</span><small>新建</small></button>
     </aside>
     <main class="workbench">
@@ -51,11 +52,11 @@
       </section>
 
       <section id="watermarkWorkspace" class="workspace-view" hidden>
-        <div class="workspace-header"><div><span class="overline">DOCUMENT SANITIZATION</span><h1>文件脱敏</h1><p id="watermarkSummary">选择当前文件，核对脱敏前后变化，再保存或另存为。</p></div><div class="command-bar"><button class="backHome">返回</button><button id="addSanitizeFiles">添加文件</button><button id="sanitizeSave">保存</button><button id="sanitizeSaveAs" class="primary">另存为</button></div></div>
-        <div class="notice">每次只处理左侧当前选中的一个文件。默认选中检测到的水印与工作表背景；处于修订状态的 Word 文件会醒目标记。</div>
+        <div class="workspace-header"><div><span class="overline">DOCUMENT SANITIZATION</span><h1>文件脱敏</h1><p id="watermarkSummary">选择文件并标记需要清理的内容，保存或另存为时才会真正写入。</p></div><div class="command-bar"><span id="sanitizeBatchActions" class="sanitize-batch-actions" hidden><small id="sanitizeSelectedCount">已选择 0 个文件</small><button id="batchClearWatermarks">一键清除水印</button><button id="batchClearMetadata">一键清除文件属性</button></span><button class="backHome">返回</button><button id="addSanitizeFiles">添加文件</button><button id="sanitizeSave">保存</button><button id="sanitizeSaveAs" class="primary">另存为</button></div></div>
+        <div class="notice">水印、背景和批注默认均不删除。左侧可选择一个或多个文件；批量操作只做标记，确认“保存”或“另存为”后才会生效。多个文件另存为时会生成 ZIP 包。</div>
         <div id="watermarkResults" class="watermark-results" hidden></div>
         <div class="sanitize-layout">
-          <aside class="sanitize-files"><div class="panel-title"><strong>文件</strong><span id="sanitizeFileCount"></span></div><div id="sanitizeFileList"></div></aside>
+          <aside class="sanitize-files"><div class="panel-title"><label class="sanitize-select-all"><input id="sanitizeSelectAll" type="checkbox"> 全选</label><span id="sanitizeFileCount"></span></div><div id="sanitizeFileList"></div></aside>
           <section class="sanitize-comparison">
             <div class="sanitize-comparison-title"><strong>属性或内容</strong><strong>脱敏前</strong><strong>脱敏后 <small id="sanitizeChangeCount">0 项变化</small></strong></div>
             <div id="revisionWarning"></div>

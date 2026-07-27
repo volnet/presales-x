@@ -15,6 +15,7 @@ test('watermark workspace and companion are first-class local features',()=>{
   assert.match(app,/pickWatermarkFiles/);
   assert.match(app,/addSanitizationFiles/);
   assert.match(main,/createCompanion/);
+  assert.match(main,/app\.disableHardwareAcceleration\(\);/);
   assert.match(main,/inspectSanitizationFiles/);
   assert.match(main,/sanitizeOfficeFile/);
   assert.match(main,/showSaveDialog/);
@@ -40,7 +41,14 @@ test('watermark workspace and companion are first-class local features',()=>{
   assert.match(app,/type="\$\{isTime\?'datetime-local':'text'\}"/);
   assert.match(app,/toISOString\(\)/);
   assert.match(app,/ISO 8601/);
-  assert.doesNotMatch(app,/sanitizeSelectAll|data-sanitize-type/);
+  assert.match(html,/id="sanitizeSelectAll"/);
+  assert.match(app,/batchClearWatermarks/);
+  assert.match(app,/batchClearMetadata/);
+  assert.match(app,/sanitizeBatch/);
+  assert.match(main,/sanitize-files-batch/);
+  assert.match(main,/批量脱敏文件\.zip/);
+  assert.match(main,/let name=path\.basename\(sourcePath\)/);
+  assert.match(app,/class="sanitize-kind"/);
   assert.match(html,/id="sanitizeSave"/);
   assert.match(html,/id="sanitizeSaveAs"/);
   assert.doesNotMatch(html,/Word、Excel、PDF/);
@@ -50,18 +58,39 @@ test('watermark workspace and companion are first-class local features',()=>{
   const companionHtml=read('src/companion/index.html'),companionApp=read('src/companion/app.js');
   assert.doesNotMatch(companionHtml,/PreSalesX/);
   assert.match(companionHtml,/id="bubble"/);
-  for(const state of ['entrance','sleep','wake','think','insight'])assert.match(companionApp,new RegExp(`['"]${state}['"]`));
+  for(const state of ['entrance','sleep','wake','think','insight','dash'])assert.match(companionApp,new RegExp(`['"]${state}['"]`));
   assert.doesNotMatch(companionApp,/Math\.random|\.png/);
   assert.match(main,/const width=220,height=220/);
   assert.match(main,/roundedCorners:false/);
   assert.match(main,/focusable:false/);
+  assert.doesNotMatch(main,/titleBarStyle|titleBarOverlay/);
+  assert.match(main,/setBackgroundColor\('#00000000'\)/);
   assert.doesNotMatch(main,/setShape|companionShape|nativeImage|useContentSize|setContentSize/);
   assert.match(read('src/companion/style.css'),/\.robot-hitbox:focus,[^{]*\.robot-hitbox:focus-visible[^{]*\{outline:0/);
   assert.match(read('scripts/after-pack.js'),/--set-icon/);
   assert.match(read('scripts/after-pack.js'),/presalesx-logo\.ico/);
   const companionCss=read('src/companion/style.css');
-  for(const part of ['head','torso','arm-left','arm-right','leg-left','leg-right','orbit'])assert.match(companionHtml,new RegExp(`class="[^"]*${part}`));
-  for(const motion of ['arrive','landing','lie-down','wake-up','ponder','idea-pop'])assert.match(companionCss,new RegExp(`@keyframes ${motion}`));
+  assert.match(companionHtml,/柴犬数字宠物/);
+  assert.match(companionHtml,/#171c24/);
+  assert.match(companionHtml,/class="tan-brow"/);
+  for(const part of ['head','torso','arm-left','arm-right','leg-left','leg-right','tail'])assert.match(companionHtml,new RegExp(`class="[^"]*${part}`));
+  for(const motion of ['puppy-arrive','puppy-land','curl-up','wake-up','curious-tilt','idea-pop','puppy-dash','leg-run-left','leg-run-right'])assert.match(companionCss,new RegExp(`@keyframes ${motion}`));
+  assert.match(main,/label:'隐藏宠物'/);
+  assert.match(main,/setCompanionVisible\(false\)/);
+  assert.match(main,/setCompanionVisible\(true\)/);
+  assert.match(main,/notifyCompanionVisibility/);
+  assert.match(html,/id="showCompanion"[^>]*hidden/);
+  assert.match(read('src/preload.js'),/showCompanion:\(\)=>ipcRenderer\.send\('companion-show'\)/);
+  assert.match(read('src/preload.js'),/onCompanionVisibility/);
+  assert.match(read('src/ui/app.js'),/onCompanionVisibility/);
+  assert.match(main,/ipcMain\.on\('companion-show'/);
+  assert.match(companionApp,/startDrag\(dragOrigin\)/);
+  assert.match(companionApp,/moveDrag\(queuedDragPoint\)/);
+  assert.match(read('src/companion-preload.js'),/companion-drag-move/);
+  assert.match(main,/ipcMain\.on\('companion-drag-move'/);
+  assert.match(main,/getDisplayNearestPoint/);
+  assert.match(companionCss,/\.bubble\{visibility:hidden/);
+  assert.match(companionCss,/\.bubble\.visible\{visibility:visible/);
 });
 
 test('refactored application shell preserves named grid areas',()=>{
@@ -74,7 +103,7 @@ test('refactored application shell preserves named grid areas',()=>{
 
 test('saving metadata keeps the active property editor mounted and editable',()=>{
   const source=read('src/ui/app.js');
-  const saveBranch=source.slice(source.indexOf("if(action==='save')"),source.indexOf("}catch(e){showSaveStatus"));
+  const editorStart=source.indexOf('const submit=async action=>'),saveBranch=source.slice(editorStart,source.indexOf("}catch(error){showStatus('保存失败",editorStart));
   assert.match(source,/data-original=/);
   assert.match(saveBranch,/input\.dataset\.original=input\.value/);
   assert.match(source,/input\.disabled=false/);
@@ -186,4 +215,27 @@ test('application and release artifacts use version 1.3.0 consistently',()=>{
   assert.match(workflow,/PreSalesX-\*-Windows-\*\.zip/);
   assert.match(workflow,/PreSalesX-\*-macOS-\*\.zip/);
   assert.match(workflow,/gh release create/);
+});
+
+test('chosen files have a readable type badge and the Shiba has stateful happy motion',()=>{
+  const uiCss=read('src/ui/refactor.css');
+  const companionHtml=read('src/companion/index.html');
+  const companionCss=read('src/companion/style.css');
+  assert.match(uiCss,/\.chosen-file \{[^}]*grid-template-columns:64px/);
+  assert.match(uiCss,/\.chosen-file \.zip-icon \{[^}]*padding:3px 9px/);
+  assert.match(uiCss,/\.companion-launcher \{[^}]*border-radius:50%/);
+  assert.match(uiCss,/\.companion-launcher svg \{[^}]*width:38px/);
+  assert.match(companionHtml,/class="nose"/);
+  assert.match(companionHtml,/class="tongue"/);
+  assert.match(companionCss,/\.face-sleep,\.face-think,\.idea,\.zzz,\.tongue\{opacity:0\}/);
+  assert.match(companionCss,/\[data-state="welcome"\] \.tongue/);
+  assert.match(companionCss,/@keyframes tongue-happy/);
+  assert.match(uiCss,/\.sanitize-file \.sanitize-kind \{ align-self:center/);
+  assert.match(uiCss,/\.sanitize-file>button \{[^}]*align-items:center/);
+  assert.match(uiCss,/\.sanitize-file-copy strong \{ font-size:13\.5px/);
+  assert.doesNotMatch(uiCss,/\.sanitize-file-copy small \{ font-size:12px/);
+  assert.doesNotMatch(uiCss,/\.sanitize-file \.sanitize-file-copy>span \{ font-size:12px/);
+  assert.match(companionHtml,/class="nose"/);
+  assert.match(companionCss,/@keyframes puppy-dash/);
+  assert.match(read('src/companion/app.js'),/setState\('dash','马上就来！'\)/);
 });

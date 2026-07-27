@@ -53,7 +53,18 @@ function stripWordWatermarks(xml){
 
 function stripExcelBackgrounds(xml){
   let removed=0;
-  const output=xml.replace(/<(?:picture|backgroundPicture)\b[^>]*\/>/gi,()=>{removed++;return '';});
+  const output=xml.replace(/<(?:\w+:)?(?:picture|backgroundPicture)\b[^>]*\/?>(?:\s*<\/(?:\w+:)?(?:picture|backgroundPicture)>)?/gi,()=>{removed++;return '';});
+  return {xml:output,removed};
+}
+
+function stripExcelHeaderWatermarks(xml){
+  let removed=0,output=xml;
+  output=output.replace(/<(?:\w+:)?headerFooter\b[\s\S]*?<\/(?:\w+:)?headerFooter>/gi,block=>{
+    if(!/&G|&amp;G|legacyDrawingHF|\[(?:Picture|图片)\]/i.test(block))return block;
+    removed++;
+    return '';
+  });
+  output=output.replace(/<(?:\w+:)?legacyDrawingHF\b[^>]*\/?>(?:\s*<\/(?:\w+:)?legacyDrawingHF>)?/gi,()=>{removed++;return '';});
   return {xml:output,removed};
 }
 
@@ -73,7 +84,7 @@ function writeArchive(entries){
 
 function wordInspection(entries,sourcePath){
   const items=[...officeMetadataItems(entries)];let watermarkCount=0;
-  for(const entry of entries.filter(item=>/^word\/header\d*\.xml$/i.test(item.name))){const blocks=wordWatermarkBlocks(entry.data.toString('utf8'));for(const block of blocks){const signature=sha(Buffer.from(block)).slice(0,12),content=watermarkContent(block);watermarkCount++;items.push({id:`word-watermark-${signature}`,type:'watermark',part:entry.name,signature,label:`水印 ${watermarkCount} · ${content}`,detail:`${content}（${entry.name}）`,selected:true});}}
+  for(const entry of entries.filter(item=>/^word\/header\d*\.xml$/i.test(item.name))){const blocks=wordWatermarkBlocks(entry.data.toString('utf8'));for(const block of blocks){const signature=sha(Buffer.from(block)).slice(0,12),content=watermarkContent(block);watermarkCount++;items.push({id:`word-watermark-${signature}`,type:'watermark',part:entry.name,signature,label:`水印 ${watermarkCount} · ${content}`,detail:`${content}（${entry.name}）`,selected:false});}}
   const document=entries.find(item=>/^word\/document\.xml$/i.test(item.name)),documentXml=document?.data.toString('utf8')||'';
   for(const comments of entries.filter(item=>/^word\/comments(?:\d+)?\.xml$/i.test(item.name))){const xml=comments.data.toString('utf8');for(const block of xml.match(/<(?:\w+:)?comment\b[\s\S]*?<\/(?:\w+:)?comment>/gi)||[]){const open=(block.match(/<(?:\w+:)?comment\b[^>]*>/i)||[])[0]||'',id=attr(open,'w:id')||attr(open,'id')||String(items.length),author=attr(open,'w:author')||attr(open,'author')||'<空>',text=decode(block),page=commentPage(documentXml,id);items.push({id:`word-comment-${id}`,type:'comment',commentId:id,page,label:`第 ${page} 页 · 批注 ${Number(id)+1||id}`,detail:`${author}：${text||'<空>'}`,selected:false});}}
   const revisionCount=(documentXml.match(/<w:(?:ins|del|moveFrom|moveTo)\b/gi)||[]).length;
@@ -86,8 +97,9 @@ function excelInspection(entries,sourcePath){
   const sheetNames=(workbook.match(/<sheet\b[^>]*>/gi)||[]).map((tag,index)=>attr(tag,'name')||`Sheet ${index+1}`);
   for(const entry of entries.filter(item=>/^xl\/worksheets\/sheet\d+\.xml$/i.test(item.name))){
     const number=Number((entry.name.match(/sheet(\d+)/i)||[])[1])||1,sheet=sheetNames[number-1]||`Sheet ${number}`,xml=entry.data.toString('utf8');
-    const backgrounds=(xml.match(/<(?:picture|backgroundPicture)\b[^>]*\/>/gi)||[]).length;
-    if(backgrounds){const relation=attr((xml.match(/<(?:picture|backgroundPicture)\b[^>]*\/>/i)||[])[0]||'','r:id');items.push({id:`excel-background-${number}`,type:'watermark',part:entry.name,label:`${sheet} · 工作表背景`,detail:`背景图片 ${relation||'<未命名>'}`,selected:true});}
+    const backgroundTag=(xml.match(/<(?:\w+:)?(?:picture|backgroundPicture)\b[^>]*\/?>(?:\s*<\/(?:\w+:)?(?:picture|backgroundPicture)>)?/i)||[])[0]||'';
+    if(backgroundTag){const relation=attr(backgroundTag,'r:id');items.push({id:`excel-background-${number}`,type:'watermark',subtype:'background',part:entry.name,label:`${sheet} · 工作表背景`,detail:`背景图片 ${relation||'<未命名>'}`,selected:false});}
+    if(/&G|&amp;G|<(?:\w+:)?legacyDrawingHF\b/i.test(xml))items.push({id:`excel-header-watermark-${number}`,type:'watermark',subtype:'header',part:entry.name,label:`${sheet} · 页眉或页脚图片水印`,detail:'页眉/页脚中检测到图片占位符 &G',selected:false});
   }
   for(const entry of entries.filter(item=>/^xl\/comments\d*\.xml$/i.test(item.name))){const xml=entry.data.toString('utf8'),authors=(xml.match(/<author>[\s\S]*?<\/author>/gi)||[]).map(decode);for(const block of xml.match(/<comment\b[\s\S]*?<\/comment>/gi)||[]){const open=(block.match(/<comment\b[^>]*>/i)||[])[0]||'',ref=attr(open,'ref'),author=authors[Number(attr(open,'authorId'))]||'<空>',id=`excel-comment-${entry.name.replace(/\W/g,'-')}-${ref}`;items.push({id,type:'comment',part:entry.name,ref,label:`批注 ${ref||items.length+1}`,detail:`${author}：${decode(block)||'<空>'}`,selected:false});}}
   return {sourcePath,name:path.basename(sourcePath),kind:'excel',hasRevisions:false,revisionCount:0,items};
@@ -135,7 +147,7 @@ async function sanitizeOfficeFile(sourcePath,directory,selectedIds,destinationOv
   for(const entry of entries){if(!entry.data)continue;let xml=entry.data.toString('utf8'),changed=false;
     if(inspection.kind==='word'&&/^word\/header\d*\.xml$/i.test(entry.name)){const selectedSignatures=new Set(inspection.items.filter(value=>value.type==='watermark'&&value.part===entry.name&&selected.has(value.id)).map(value=>value.signature));if(selectedSignatures.size){let count=0;for(const block of wordWatermarkBlocks(xml)){const signature=sha(Buffer.from(block)).slice(0,12);if(selectedSignatures.has(signature)){xml=xml.replace(block,'');count++;}}removed+=count;changed=count>0;}}
     if(inspection.kind==='word'&&/^word\/.*\.xml$/i.test(entry.name)){for(const item of inspection.items.filter(value=>value.type==='comment'&&selected.has(value.id))){const next=removeWordComment(xml,item.commentId,/^word\/comments(?:\d+)?\.xml$/i.test(entry.name));if(next!==xml){xml=next;removed++;changed=true;}}}
-    if(inspection.kind==='excel'){for(const item of inspection.items.filter(value=>selected.has(value.id)&&value.part===entry.name)){if(item.type==='watermark'){const result=stripExcelBackgrounds(xml);xml=result.xml;removed+=result.removed;changed=!!result.removed||changed;}else if(item.type==='comment'){const next=xml.replace(new RegExp(`<comment\\b(?=[^>]*\\bref="${item.ref}")[\\s\\S]*?<\\/comment>`,'gi'),'');if(next!==xml){xml=next;removed++;changed=true;}}}}
+    if(inspection.kind==='excel'){for(const item of inspection.items.filter(value=>selected.has(value.id)&&value.part===entry.name)){if(item.type==='watermark'){const result=item.subtype==='header'?stripExcelHeaderWatermarks(xml):stripExcelBackgrounds(xml);xml=result.xml;removed+=result.removed;changed=!!result.removed||changed;}else if(item.type==='comment'){const next=xml.replace(new RegExp(`<comment\\b(?=[^>]*\\bref="${item.ref}")[\\s\\S]*?<\\/comment>`,'gi'),'');if(next!==xml){xml=next;removed++;changed=true;}}}}
     for(const item of inspection.items.filter(value=>value.type==='metadata'&&value.part===entry.name&&Object.prototype.hasOwnProperty.call(metadataUpdates,value.field))){const next=setXmlTag(xml,item.tag,String(metadataUpdates[item.field]??''));if(next!==xml){xml=next;modified++;changed=true;}}
     if(changed)entry.data=Buffer.from(xml);
   }
@@ -160,4 +172,4 @@ async function rewriteOffice(buffer,kind){
   const entries=await readArchive(buffer);let removed=0;for(const entry of entries){if(!entry.data)continue;if(kind==='word'&&/^word\/header\d*\.xml$/i.test(entry.name)){const result=stripWordWatermarks(entry.data.toString('utf8'));entry.data=Buffer.from(result.xml);removed+=result.removed;}if(kind==='excel'&&/^xl\/worksheets\/sheet\d+\.xml$/i.test(entry.name)){const result=stripExcelBackgrounds(entry.data.toString('utf8'));entry.data=Buffer.from(result.xml);removed+=result.removed;}}return {buffer:await writeArchive(entries),removed};
 }
 
-module.exports={kindOf,stripWordWatermarks,stripExcelBackgrounds,rewriteOffice,inspectSanitizationFile,inspectSanitizationFiles,sanitizeOfficeFile};
+module.exports={kindOf,stripWordWatermarks,stripExcelBackgrounds,stripExcelHeaderWatermarks,rewriteOffice,inspectSanitizationFile,inspectSanitizationFiles,sanitizeOfficeFile};

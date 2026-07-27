@@ -9,9 +9,10 @@ const transitions={
   wake:{next:'greet',after:720},
   greet:{next:'idle',after:1500},
   think:{next:'thinking',after:460},
-  insight:{next:'idle',after:1900}
+  insight:{next:'idle',after:1900},
+  dash:{next:'idle',after:760}
 };
-let state='entrance',transitionTimer,idleTimer,bubbleTimer,dragging=false,moved=false;
+let state='entrance',transitionTimer,idleTimer,bubbleTimer,dragging=false,moved=false,dragOrigin=null,queuedDragPoint=null,dragFrame=0;
 
 function say(text,duration=2800){
   clearTimeout(bubbleTimer);
@@ -50,15 +51,17 @@ function react(kind,message=''){
 
 hitbox.addEventListener('pointerdown',event=>{
   if(event.button!==0)return;
-  dragging=true;moved=false;
+  dragging=true;moved=false;dragOrigin={x:event.screenX,y:event.screenY};
   hitbox.setPointerCapture(event.pointerId);
   hitbox.classList.add('dragging');
-  window.companion.startDrag();
+  window.companion.startDrag(dragOrigin);
 });
-hitbox.addEventListener('pointermove',()=>{if(dragging)moved=true;});
+hitbox.addEventListener('pointermove',event=>{if(!dragging)return;queuedDragPoint={x:event.screenX,y:event.screenY};if(Math.hypot(event.screenX-dragOrigin.x,event.screenY-dragOrigin.y)>3)moved=true;if(!dragFrame)dragFrame=requestAnimationFrame(()=>{dragFrame=0;if(queuedDragPoint)window.companion.moveDrag(queuedDragPoint);});});
 function stopDrag(event){
   if(!dragging)return;
   dragging=false;
+  if(dragFrame)cancelAnimationFrame(dragFrame);
+  dragFrame=0;queuedDragPoint=null;dragOrigin=null;
   if(hitbox.hasPointerCapture(event.pointerId))hitbox.releasePointerCapture(event.pointerId);
   hitbox.classList.remove('dragging');
   window.companion.stopDrag();
@@ -66,8 +69,8 @@ function stopDrag(event){
 hitbox.addEventListener('pointerup',stopDrag);
 hitbox.addEventListener('pointercancel',stopDrag);
 hitbox.addEventListener('click',()=>{if(!moved)react('activity','我在，随时可以帮忙。');});
-hitbox.addEventListener('dblclick',event=>{event.preventDefault();if(!moved)window.companion.openMain();});
+hitbox.addEventListener('dblclick',event=>{event.preventDefault();if(!moved){setState('dash','马上就来！');setTimeout(()=>window.companion.openMain(),620);}});
 hitbox.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();react('activity');}});
-window.addEventListener('blur',()=>{if(dragging){dragging=false;hitbox.classList.remove('dragging');window.companion.stopDrag();}});
+window.addEventListener('blur',()=>{if(dragging){dragging=false;if(dragFrame)cancelAnimationFrame(dragFrame);dragFrame=0;queuedDragPoint=null;dragOrigin=null;hitbox.classList.remove('dragging');window.companion.stopDrag();}});
 window.companion.onMotion(payload=>react(payload.name,payload.message));
 setState('entrance');

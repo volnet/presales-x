@@ -9,76 +9,40 @@
 <body>
   <main id="stage" data-state="entrance">
     <div id="bubble" class="bubble" aria-live="polite"></div>
-    <div id="robotHitbox" class="robot-hitbox" role="button" tabindex="0" aria-label="数字伙伴">
-      <svg id="robot" viewBox="0 0 180 190" aria-hidden="true">
+    <div id="robotHitbox" class="robot-hitbox" role="button" tabindex="0" aria-label="柴犬数字宠物">
+      <svg id="robot" viewBox="0 0 200 190" aria-hidden="true">
         <defs>
-          <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="#ffffff"/>
-            <stop offset=".28" stop-color="#eef5ff"/>
-            <stop offset=".62" stop-color="#9aabc4"/>
-            <stop offset=".82" stop-color="#61728e"/>
-            <stop offset="1" stop-color="#f8fbff"/>
-          </linearGradient>
-          <radialGradient id="visor" cx=".5" cy=".38" r=".72">
-            <stop offset="0" stop-color="#194c9c"/>
-            <stop offset=".45" stop-color="#071f51"/>
-            <stop offset="1" stop-color="#010713"/>
-          </radialGradient>
-          <filter id="blueGlow" x="-80%" y="-80%" width="260%" height="260%">
-            <feGaussianBlur stdDeviation="2.2" result="blur"/>
-            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-          </filter>
+          <linearGradient id="shibaFur" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3a414c"/><stop offset=".42" stop-color="#171c24"/><stop offset="1" stop-color="#070a0f"/></linearGradient>
+          <linearGradient id="creamFur" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3c088"/><stop offset="1" stop-color="#c8793c"/></linearGradient>
+          <radialGradient id="eye" cx=".36" cy=".28" r=".8"><stop offset="0" stop-color="#4c6689"/><stop offset=".18" stop-color="#16253b"/><stop offset="1" stop-color="#03070d"/></radialGradient>
+          <filter id="softShadow" x="-50%" y="-50%" width="200%" height="220%"><feGaussianBlur stdDeviation="2.6"/></filter>
         </defs>
-        <g class="orbit">
-          <ellipse cx="90" cy="105" rx="72" ry="28" fill="none" stroke="#4ba8ff" stroke-width="2.4"/>
-          <circle cx="156" cy="94" r="4" fill="#fff" filter="url(#blueGlow)"/>
-        </g>
-        <g class="shadow"><ellipse cx="90" cy="177" rx="39" ry="6" fill="#102b55" opacity=".2"/></g>
+        <ellipse class="shadow" cx="101" cy="176" rx="54" ry="8" fill="#263b56" opacity=".17" filter="url(#softShadow)"/>
+        <g class="tail"><path d="M146 118c35-2 34-41 11-40-15 1-15 19-4 20 10 1 14-9 10-16" fill="none" stroke="url(#shibaFur)" stroke-width="16" stroke-linecap="round"/><path d="M158 84c7-2 10 4 8 9" fill="none" stroke="#d58a4a" stroke-width="5" stroke-linecap="round"/></g>
         <g class="body">
-          <g class="leg leg-left">
-            <rect x="60" y="128" width="22" height="38" rx="10" fill="url(#metal)" stroke="#50627f"/>
-            <path d="M57 159h27q5 0 7 9H55q-2-5 2-9z" fill="url(#metal)" stroke="#50627f"/>
-          </g>
-          <g class="leg leg-right">
-            <rect x="98" y="128" width="22" height="38" rx="10" fill="url(#metal)" stroke="#50627f"/>
-            <path d="M96 159h27q5 0 7 9H94q-2-5 2-9z" fill="url(#metal)" stroke="#50627f"/>
-          </g>
-          <g class="torso">
-            <path d="M62 90q28-17 56 0l-7 48q-21 16-42 0z" fill="url(#metal)" stroke="#50627f" stroke-width="1.5"/>
-            <path class="core-shell" d="M73 101l17-9 17 9-17 27z" fill="#081f51" stroke="#55afff"/>
-            <path d="M78 102l24 20m0-20-24 20" stroke="#7bc7ff" stroke-width="3" filter="url(#blueGlow)"/>
-            <circle class="core-light" cx="90" cy="111" r="4.5" fill="#eaf8ff" filter="url(#blueGlow)"/>
-          </g>
-          <g class="arm arm-left">
-            <rect x="42" y="91" width="20" height="42" rx="10" fill="url(#metal)" stroke="#50627f"/>
-            <circle cx="52" cy="132" r="10" fill="url(#metal)" stroke="#50627f"/>
-          </g>
-          <g class="arm arm-right">
-            <rect x="118" y="91" width="20" height="42" rx="10" fill="url(#metal)" stroke="#50627f"/>
-            <circle cx="128" cy="132" r="10" fill="url(#metal)" stroke="#50627f"/>
-          </g>
+          <g class="leg leg-left"><path d="M65 132c-4 13-5 27-2 36 7 5 18 5 25 0l-2-37z" fill="url(#shibaFur)"/><ellipse cx="75" cy="169" rx="15" ry="7" fill="url(#creamFur)"/></g>
+          <g class="leg leg-right"><path d="M113 132c-2 14-1 28 2 36 8 5 19 4 25-2l-7-38z" fill="url(#shibaFur)"/><ellipse cx="127" cy="168" rx="15" ry="7" fill="url(#creamFur)"/></g>
+          <g class="torso"><path d="M55 103c8-17 28-25 47-23 22 1 41 14 46 36l-8 34c-23 17-57 17-80 0z" fill="url(#shibaFur)" stroke="#05070b" stroke-width="1.5"/><path d="M78 105c10-7 27-7 38 0 0 17-5 33-19 45-15-11-20-27-19-45z" fill="#e6ae72"/><path class="bandana" d="M62 103c24 10 51 10 75 0l-5 13c-22 8-43 8-65 0z" fill="#1261e8"/><path class="badge" d="M92 108l8-5 8 5-8 10z" fill="#dff5ff" stroke="#5bd4ff"/></g>
+          <g class="arm arm-left"><path d="M60 111c-13 4-19 14-18 27 2 8 12 10 18 4l12-24z" fill="url(#shibaFur)"/><ellipse cx="48" cy="140" rx="10" ry="8" fill="url(#creamFur)"/></g>
+          <g class="arm arm-right"><path d="M139 111c13 3 20 13 19 26-2 8-12 11-18 5l-13-24z" fill="url(#shibaFur)"/><ellipse cx="152" cy="140" rx="10" ry="8" fill="url(#creamFur)"/></g>
           <g class="head">
-            <rect x="43" y="34" width="94" height="70" rx="35" fill="url(#metal)" stroke="#50627f" stroke-width="1.5"/>
-            <rect x="50" y="45" width="80" height="49" rx="24" fill="url(#visor)" stroke="#4c8bd9" stroke-width="1.5"/>
-            <g class="face face-awake" fill="none" stroke="#70d8ff" stroke-width="4" stroke-linecap="round" filter="url(#blueGlow)">
-              <path d="M68 68q8-8 16 0"/><path d="M98 68q8-8 16 0"/>
-            </g>
-            <g class="face face-sleep" fill="none" stroke="#70d8ff" stroke-width="3" stroke-linecap="round">
-              <path d="M68 72h15"/><path d="M98 72h15"/>
-            </g>
-            <g class="face face-think" fill="#70d8ff" filter="url(#blueGlow)">
-              <circle cx="76" cy="69" r="3.5"/><circle cx="106" cy="69" r="3.5"/>
-            </g>
+            <g class="ear ear-left"><path d="M48 53L58 12l29 31z" fill="url(#shibaFur)" stroke="#05070b"/><path d="M57 45l4-23 16 19z" fill="#a9584e"/></g>
+            <g class="ear ear-right"><path d="M112 42l30-30 9 44z" fill="url(#shibaFur)" stroke="#05070b"/><path d="M122 41l17-19 4 25z" fill="#a9584e"/></g>
+            <path d="M47 56c8-24 30-34 53-34s47 11 54 37c7 27-10 54-36 63-23 8-52 1-66-18-10-13-11-32-5-48z" fill="url(#shibaFur)" stroke="#05070b" stroke-width="1.5"/>
+            <path d="M58 82c7-14 20-19 40-13 19-7 35-2 43 13 3 16-9 32-25 38-16 6-34 4-47-7-10-8-15-20-11-31z" fill="url(#creamFur)"/>
+            <ellipse class="tan-brow" cx="75" cy="48" rx="9" ry="5" fill="#cf7f40" transform="rotate(-8 75 48)"/><ellipse class="tan-brow" cx="125" cy="48" rx="9" ry="5" fill="#cf7f40" transform="rotate(8 125 48)"/>
+            <g class="face face-awake"><ellipse cx="75" cy="70" rx="13" ry="16" fill="url(#eye)"/><ellipse cx="124" cy="70" rx="13" ry="16" fill="url(#eye)"/><circle cx="70" cy="64" r="4.5" fill="#fff"/><circle cx="119" cy="64" r="4.5" fill="#fff"/><circle cx="78" cy="75" r="2" fill="#78d8ff"/><circle cx="127" cy="75" r="2" fill="#78d8ff"/></g>
+            <g class="face face-sleep" fill="none" stroke="#3a2a25" stroke-width="4" stroke-linecap="round"><path d="M64 73q11 8 22 0"/><path d="M113 73q11 8 22 0"/></g>
+            <g class="face face-think"><ellipse cx="75" cy="70" rx="11" ry="14" fill="url(#eye)"/><ellipse cx="126" cy="67" rx="12" ry="15" fill="url(#eye)"/><circle cx="71" cy="65" r="4" fill="#fff"/><circle cx="122" cy="61" r="4" fill="#fff"/></g>
+            <ellipse cx="100" cy="91" rx="17" ry="12" fill="#eeb67c" opacity=".72"/>
+            <path class="nose" d="M90 87q10-8 20 0-1 9-10 10-9-1-10-10z" fill="#171216" stroke="#08070a" stroke-width="1.5"/><ellipse cx="96" cy="87" rx="3.2" ry="2" fill="#fff" opacity=".35"/>
+            <path class="mouth" d="M100 97v5m0 0q-8 8-14 1m14-1q8 8 14 1" fill="none" stroke="#35231f" stroke-width="2.7" stroke-linecap="round"/>
+            <path class="tongue" d="M93 104q7 16 14 0-7 4-14 0z" fill="#f1818b" stroke="#a84e57" stroke-width="1.4"/>
+            <circle cx="53" cy="94" r="6" fill="#d97970" opacity=".42"/><circle cx="145" cy="94" r="6" fill="#d97970" opacity=".42"/>
           </g>
         </g>
-        <g class="idea" filter="url(#blueGlow)">
-          <path d="M139 34l5-10m5 15 9-6m-17 15 11 2" stroke="#7bd7ff" stroke-width="3" stroke-linecap="round"/>
-          <circle cx="137" cy="39" r="5" fill="#fff"/>
-        </g>
-        <g class="zzz" fill="#70bfff" font-family="Arial,sans-serif" font-weight="700">
-          <text x="132" y="51" font-size="12">Z</text>
-          <text x="145" y="37" font-size="16">Z</text>
-        </g>
+        <g class="idea"><circle cx="158" cy="44" r="10" fill="#fff7b1" stroke="#efb600"/><path d="M158 25v-8m18 13 6-6m-3 20h9" stroke="#efb600" stroke-width="3" stroke-linecap="round"/></g>
+        <g class="zzz" fill="#6295e8" font-family="Arial,sans-serif" font-weight="800"><text x="148" y="56" font-size="13">Z</text><text x="161" y="40" font-size="18">Z</text></g>
       </svg>
     </div>
   </main>
