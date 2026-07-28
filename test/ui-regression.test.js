@@ -93,6 +93,26 @@ test('watermark workspace and companion are first-class local features',()=>{
   assert.match(companionCss,/\.bubble\.visible\{visibility:visible/);
 });
 
+test('Office image studio supports album selection, batch effects and export',()=>{
+  const html=read('src/ui/index.html'),app=read('src/ui/app.js'),main=read('src/main.js'),preload=read('src/preload.js'),css=read('src/ui/refactor.css');
+  assert.match(html,/data-mode="images"/);assert.match(html,/id="imageWorkspace"/);assert.match(html,/id="imageGallery"/);
+  assert.match(html,/批量加水印/);assert.match(html,/>转黑白</);assert.match(html,/横向/);assert.match(html,/竖向/);assert.match(html,/斜向/);assert.match(html,/透明度/);
+  assert.match(app,/inspectOfficeImages/);assert.match(app,/transformImage/);assert.match(app,/getImageData/);assert.match(app,/pickWatermarkImage/);assert.match(app,/exportOfficeImages/);
+  assert.match(main,/inspect-office-images/);assert.match(main,/export-office-images/);assert.match(preload,/pickImageSourceFiles/);
+  assert.match(css,/\.image-gallery\{/);assert.match(css,/grid-template-columns:repeat\(auto-fill/);assert.doesNotMatch(main,/LibreOffice|soffice/);
+  assert.match(html,/id="imagePreviewPane"/);assert.match(html,/id="imageSelectionTray"/);assert.match(html,/id="imageCopyAction"/);
+  assert.match(app,/ondblclick=.*showImagePreview/);assert.match(app,/oncontextmenu/);assert.match(app,/event\.metaKey/);assert.match(app,/copyOfficeImages/);
+  assert.match(app,/updateCurrentGallerySelectionState\(\);updateImageActionState\(\)/);assert.match(app,/extensionLabel\(source\)/);assert.match(app,/extensionLabel\(file\)/);
+  assert.match(html,/id="toggleSanitizeFiles"/);assert.match(html,/id="toggleImageFiles"/);assert.match(css,/files-collapsed/);
+  assert.match(main,/copy-office-images/);assert.match(read('src/image-clipboard.js'),/clipboard\.write/);
+  assert.match(html,/媒体助理/);assert.doesNotMatch(html,/>图片提取</);assert.match(app,/mediaType==='video'/);assert.match(app,/<video/);assert.match(app,/media-format-badge/);assert.match(css,/\.media-format-badge/);
+  assert.match(read('src/office-images.js'),/video\/mp4/);assert.match(read('src/office-images.js'),/videoPreviewable/);
+  assert.match(html,/id="videoCompressionPanel"/);assert.match(html,/id="mediaTaskConsole"/);assert.match(html,/视频码率/);assert.match(html,/音频码率/);
+  assert.match(html,/media-action-group/);assert.match(html,/>编辑</);assert.match(html,/>输出</);assert.match(app,/showMediaContextMenu/);assert.match(app,/handleMediaAction/);
+  assert.match(app,/imagePreviewContent.*oncontextmenu/);
+  assert.match(app,/onMediaTaskProgress/);assert.match(app,/canvas-process/);assert.match(main,/compress-office-video/);assert.match(read('src/video-processor.js'),/-progress/);
+});
+
 test('refactored application shell preserves named grid areas',()=>{
   const css=read('src/ui/refactor.css');
   assert.match(css,/"title title"\s+58px/);
