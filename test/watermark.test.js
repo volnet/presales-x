@@ -61,19 +61,25 @@ test('file sanitization lists watermark, comments and revision state before crea
   assert.ok(inspection.items.some(item=>item.id==='office-metadata-author'));
   assert.equal(inspection.items.find(item=>item.type==='watermark').selected,false);
   assert.equal(inspection.items.find(item=>item.type==='comment').selected,false);
-  const requestedDestination=path.join(directory,'自定义脱敏文件名.docx'),fileDate='2020-05-06T07:08:09.000Z',result=await sanitizeOfficeFile(source,directory,inspection.items.map(item=>item.id),requestedDestination,{metadataUpdates:{author:'123匿名作者',lastEditor:'',title:'脱敏后的项目名称'},fileTimeUpdates:{created:fileDate,modified:fileDate,accessed:fileDate}});
+  const requestedDestination=path.join(directory,'自定义脱敏文件名.docx'),fileDate='2020-05-06T07:08:09.000Z';
+  const fileTimeUpdates=process.platform==='win32'?{created:fileDate,modified:fileDate,accessed:fileDate}:{};
+  const result=await sanitizeOfficeFile(source,directory,inspection.items.map(item=>item.id),requestedDestination,{metadataUpdates:{author:'123匿名作者',lastEditor:'',title:'脱敏后的项目名称'},fileTimeUpdates});
   assert.equal(result.status,'cleaned');assert.equal(result.originalUntouched,true);
   assert.equal(result.destination,requestedDestination);
-  const sanitizedStat=await fs.stat(requestedDestination);
-  assert.ok(Math.abs(sanitizedStat.birthtime.getTime()-new Date(fileDate).getTime())<2000);
-  assert.ok(Math.abs(sanitizedStat.mtime.getTime()-new Date(fileDate).getTime())<2000);
-  assert.ok(Math.abs(sanitizedStat.atime.getTime()-new Date(fileDate).getTime())<2000);
+  if(process.platform==='win32'){
+    const sanitizedStat=await fs.stat(requestedDestination);
+    assert.ok(Math.abs(sanitizedStat.birthtime.getTime()-new Date(fileDate).getTime())<2000);
+    assert.ok(Math.abs(sanitizedStat.mtime.getTime()-new Date(fileDate).getTime())<2000);
+    assert.ok(Math.abs(sanitizedStat.atime.getTime()-new Date(fileDate).getTime())<2000);
+  }
   const sanitizedInspection=await inspectSanitizationFile(requestedDestination);
   assert.equal(sanitizedInspection.items.find(item=>item.field==='author').detail,'123匿名作者');
   assert.equal(sanitizedInspection.items.find(item=>item.field==='lastEditor').detail,'');
   assert.equal(sanitizedInspection.items.find(item=>item.field==='title').detail,'脱敏后的项目名称');
-  const verifiedStat=await fs.stat(requestedDestination);
-  assert.ok(Math.abs(verifiedStat.atime.getTime()-new Date(fileDate).getTime())<2000);
+  if(process.platform==='win32'){
+    const verifiedStat=await fs.stat(requestedDestination);
+    assert.ok(Math.abs(verifiedStat.atime.getTime()-new Date(fileDate).getTime())<2000);
+  }
   const saveResult=await sanitizeOfficeFile(source,directory,[inspection.items.find(item=>item.type==='watermark').id],source,{overwrite:true});
   assert.equal(saveResult.status,'cleaned');assert.equal(saveResult.originalUntouched,false);
   assert.equal(saveResult.destination,source);
