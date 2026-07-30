@@ -224,12 +224,12 @@ test('visible product branding uses PreSalesX consistently',()=>{
   assert.doesNotMatch(source,forbidden);
 });
 
-test('application and release artifacts use version 1.3.0 consistently',()=>{
+test('application and release artifacts use version 1.3.1 consistently',()=>{
   const manifest=JSON.parse(read('package.json'));
   const html=read('src/ui/index.html');
   const analyzer=read('src/analyzer.js');
   const workflow=read('.github/workflows/release.yml');
-  assert.equal(manifest.version,'1.3.0');
+  assert.equal(manifest.version,'1.3.1');
   assert.match(html,/PreSalesX 1\.3\.0/);
   assert.match(analyzer,/appVersion:APP_VERSION/);
   assert.match(manifest.scripts['dist:win'],/--win zip --x64/);
