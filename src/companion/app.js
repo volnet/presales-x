@@ -56,7 +56,7 @@ hitbox.addEventListener('pointerdown',event=>{
   hitbox.classList.add('dragging');
   window.companion.startDrag(dragOrigin);
 });
-hitbox.addEventListener('pointermove',event=>{if(!dragging)return;queuedDragPoint={x:event.screenX,y:event.screenY};if(Math.hypot(event.screenX-dragOrigin.x,event.screenY-dragOrigin.y)>3)moved=true;if(!dragFrame)dragFrame=requestAnimationFrame(()=>{dragFrame=0;if(queuedDragPoint)window.companion.moveDrag(queuedDragPoint);});});
+hitbox.addEventListener('pointermove',event=>{if(!dragging)return;queuedDragPoint={x:event.screenX,y:event.screenY};moved=true;if(!dragFrame)dragFrame=requestAnimationFrame(()=>{dragFrame=0;if(queuedDragPoint)window.companion.moveDrag(queuedDragPoint);});});
 function stopDrag(event){
   if(!dragging)return;
   dragging=false;
@@ -68,6 +68,7 @@ function stopDrag(event){
 }
 hitbox.addEventListener('pointerup',stopDrag);
 hitbox.addEventListener('pointercancel',stopDrag);
+hitbox.addEventListener('lostpointercapture',event=>{if(dragging)stopDrag(event);});
 hitbox.addEventListener('click',()=>{if(!moved)react('activity','我在，随时可以帮忙。');});
 hitbox.addEventListener('dblclick',event=>{event.preventDefault();if(!moved){setState('dash','马上就来！');setTimeout(()=>window.companion.openMain(),620);}});
 hitbox.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();react('activity');}});
