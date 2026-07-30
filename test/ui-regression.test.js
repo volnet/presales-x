@@ -230,7 +230,7 @@ test('application and release artifacts use version 1.3.1 consistently',()=>{
   const analyzer=read('src/analyzer.js');
   const workflow=read('.github/workflows/release.yml');
   assert.equal(manifest.version,'1.3.1');
-  assert.match(html,/PreSalesX 1\.3\.0/);
+  assert.match(html,/PreSalesX 1\.3\.1/);
   assert.match(analyzer,/appVersion:APP_VERSION/);
   assert.match(manifest.scripts['dist:win'],/--win zip --x64/);
   assert.match(manifest.scripts['dist:mac'],/--mac zip --universal/);
