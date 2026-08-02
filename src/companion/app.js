@@ -51,26 +51,33 @@ function react(kind,message=''){
 
 hitbox.addEventListener('pointerdown',event=>{
   if(event.button!==0)return;
+  event.preventDefault();
   dragging=true;moved=false;dragOrigin={x:event.screenX,y:event.screenY};
-  hitbox.setPointerCapture(event.pointerId);
+  try{hitbox.setPointerCapture(event.pointerId);}catch{}
   hitbox.classList.add('dragging');
   window.companion.startDrag(dragOrigin);
 });
-hitbox.addEventListener('pointermove',event=>{if(!dragging)return;queuedDragPoint={x:event.screenX,y:event.screenY};if(Math.hypot(event.screenX-dragOrigin.x,event.screenY-dragOrigin.y)>3)moved=true;if(!dragFrame)dragFrame=requestAnimationFrame(()=>{dragFrame=0;if(queuedDragPoint)window.companion.moveDrag(queuedDragPoint);});});
-function stopDrag(event){
+hitbox.addEventListener('pointermove',event=>{if(!dragging)return;queuedDragPoint={x:event.screenX,y:event.screenY};moved=true;if(!dragFrame)dragFrame=requestAnimationFrame(()=>{dragFrame=0;if(queuedDragPoint)window.companion.moveDrag(queuedDragPoint);});});
+function stopDrag(event={}){
   if(!dragging)return;
   dragging=false;
   if(dragFrame)cancelAnimationFrame(dragFrame);
   dragFrame=0;queuedDragPoint=null;dragOrigin=null;
-  if(hitbox.hasPointerCapture(event.pointerId))hitbox.releasePointerCapture(event.pointerId);
+  if(event.pointerId!==undefined&&hitbox.hasPointerCapture(event.pointerId))hitbox.releasePointerCapture(event.pointerId);
   hitbox.classList.remove('dragging');
   window.companion.stopDrag();
 }
 hitbox.addEventListener('pointerup',stopDrag);
 hitbox.addEventListener('pointercancel',stopDrag);
+// Moving a transparent BrowserWindow can make Chromium lose pointer capture
+// even though the mouse button is still held. The main process already tracks
+// the global cursor, so capture loss must not cancel an active drag.
+hitbox.addEventListener('lostpointercapture',()=>{});
+window.addEventListener('pointerup',stopDrag,true);
+window.addEventListener('pointercancel',stopDrag,true);
 hitbox.addEventListener('click',()=>{if(!moved)react('activity','我在，随时可以帮忙。');});
 hitbox.addEventListener('dblclick',event=>{event.preventDefault();if(!moved){setState('dash','马上就来！');setTimeout(()=>window.companion.openMain(),620);}});
 hitbox.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();react('activity');}});
-window.addEventListener('blur',()=>{if(dragging){dragging=false;if(dragFrame)cancelAnimationFrame(dragFrame);dragFrame=0;queuedDragPoint=null;dragOrigin=null;hitbox.classList.remove('dragging');window.companion.stopDrag();}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden)stopDrag();});
 window.companion.onMotion(payload=>react(payload.name,payload.message));
 setState('entrance');

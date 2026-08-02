@@ -7,22 +7,25 @@
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="pro.css">
   <link rel="stylesheet" href="refactor.css">
+  <link rel="stylesheet" href="async-media.css">
+  <link rel="stylesheet" href="monitor.css">
 </head>
 <body>
   <div class="app-shell">
     <header class="titlebar">
       <div class="brand"><img src="assets/presalesx-logo.png" alt=""><div><strong>PreSalesX</strong><span>Pre-Sales Intelligence Workspace</span></div></div>
       <div id="workspaceTitle" class="workspace-title">开始</div>
-      <div class="title-actions"><button id="openProject" class="quiet">打开项目</button></div>
+      <div class="title-actions"></div>
     </header>
     <aside class="activity-bar" aria-label="工作台">
       <button class="activity active" data-home="compare" title="供应商批量审查"><span>⌘</span><small>审查</small></button>
       <button class="activity" data-home="files" title="文件属性编辑器"><span>▤</span><small>编辑</small></button>
       <button class="activity" data-home="watermark" title="文件脱敏"><span>◇</span><small>脱敏</small></button>
-      <button class="activity" data-home="images" title="媒体助理"><span>▧</span><small>媒体</small></button>
+      <button class="activity" data-home="images" title="文档媒体助理"><span>▧</span><small>媒体</small></button>
       <div class="activity-spacer"></div>
       <button id="showCompanion" class="companion-launcher" title="显示宠物" aria-label="显示宠物" hidden><svg viewBox="0 0 44 44" aria-hidden="true"><defs><linearGradient id="launcherFur" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3c4654"/><stop offset=".55" stop-color="#171c24"/><stop offset="1" stop-color="#070a0f"/></linearGradient></defs><path d="M7 17 10 5l10 9m17 3L34 5 24 14" fill="url(#launcherFur)" stroke="#05070b" stroke-width="1.5" stroke-linejoin="round"/><path d="m10 8 2 7 5-2m17-5-2 7-5-2" fill="#a95e54"/><circle cx="22" cy="23" r="15.5" fill="url(#launcherFur)" stroke="#05070b" stroke-width="1.5"/><path d="M11 24q3-8 11-5 8-3 11 5 0 11-11 13-11-2-11-13" fill="#e2a362"/><ellipse cx="16.5" cy="21" rx="4" ry="5" fill="#07101c"/><ellipse cx="27.5" cy="21" rx="4" ry="5" fill="#07101c"/><circle cx="15.3" cy="19.4" r="1.5" fill="#fff"/><circle cx="26.3" cy="19.4" r="1.5" fill="#fff"/><circle cx="17.8" cy="22.8" r=".7" fill="#64cfff"/><circle cx="28.8" cy="22.8" r=".7" fill="#64cfff"/><path d="M18.5 27q3.5-3 7 0-1 4-3.5 4t-3.5-4" fill="#11151b"/><path d="M22 31q-3 3-6 0m6 0q3 3 6 0" fill="none" stroke="#4b2c21" stroke-width="1.6" stroke-linecap="round"/><path d="M16 35q6 3 12 0" fill="none" stroke="#2a79ff" stroke-width="2.3" stroke-linecap="round"/><path d="m22 34 2 2-2 2-2-2z" fill="#8de5ff" stroke="#1475df" stroke-width=".7"/></svg></button>
       <button id="newWorkspace" class="activity" title="新建工作台"><span>＋</span><small>新建</small></button>
+      <button id="monitorSettingsEntry" class="activity" title="???????"><span>?</span><small>??</small></button>
     </aside>
     <main class="workbench">
       <section id="start" class="start-view">
@@ -31,7 +34,7 @@
           <button class="workspace-card active" data-mode="compare"><span class="card-icon">⌘</span><strong>多家供应商批量审查</strong><p>每个 ZIP 代表一家供应商，检查文件一致性、作者与关键元数据关联。</p><em>至少 2 个 ZIP</em></button>
           <button class="workspace-card" data-mode="files"><span class="card-icon">▤</span><strong>文件属性编辑器</strong><p>打开 Office、PDF、图片或文本文件，查看、修改和清理可编辑属性。</p><em>支持多选文件</em></button>
           <button class="workspace-card" data-mode="watermark"><span class="card-icon">◇</span><strong>文件脱敏</strong><p>逐项检查并清理 Word、Excel 中的水印、工作表背景、批注和关键属性。</p><em>逐项选择 · 保存或另存为</em></button>
-          <button class="workspace-card" data-mode="images"><span class="card-icon">▧</span><strong>媒体助理</strong><p>从 Word、Excel、PowerPoint 中快速提取内置图片和视频，像相册一样预览与多选。</p><em>提取 · 预览 · 图片处理</em></button>
+          <button class="workspace-card" data-mode="images"><span class="card-icon">▧</span><strong>文档媒体助理</strong><p>从 Word、Excel、PowerPoint 中快速提取内置图片和视频，像相册一样预览与多选。</p><em>提取 · 预览 · 图片处理</em></button>
         </div>
         <div id="drop" class="drop-zone"><span class="drop-symbol">＋</span><div><strong id="dropTitle">添加供应商 ZIP</strong><p id="dropHint">ZIP 文件名将作为供应商名称</p></div><button type="button" class="primary">选择文件</button></div>
         <div id="chosen" class="chosen-list"></div>
@@ -41,7 +44,7 @@
       <section id="working" class="working-view" hidden><img src="assets/presalesx-logo.png" alt=""><div class="spinner"></div><h2 id="workingTitle">正在本地审查</h2><p id="step">准备文件…</p><progress id="bar" value="0" max="100"></progress><small>所有文件只在本机处理，不会上传。</small></section>
 
       <section id="compareWorkspace" class="workspace-view" hidden>
-        <div class="workspace-header"><div><span class="overline">SUPPLIER REVIEW</span><h1 id="compareProjectName"></h1><p id="compareSummary"></p></div><div class="command-bar"><button class="backHome">返回</button><button id="saveProject">保存项目</button><button id="exportPdf">导出 PDF</button><button id="exportXlsx" class="primary">导出操作报告</button></div></div>
+        <div class="workspace-header"><div><span class="overline">SUPPLIER REVIEW</span><h1 id="compareProjectName"></h1><p id="compareSummary"></p></div><div class="command-bar"><button class="backHome">返回</button><button id="openProject">打开检查项目</button><button id="saveProject">保存检查项目</button><button id="exportPdf">导出 PDF</button><button id="exportXlsx" class="primary">导出操作报告</button></div></div>
         <nav class="workspace-tabs"><button class="workspace-tab active" data-section="overview">文件审查</button><button class="workspace-tab" data-section="attributes">属性重复审查</button><button class="workspace-tab" data-section="report">操作记录</button></nav>
         <div id="compareOverview" class="workspace-section"></div>
         <div id="compareAttributes" class="workspace-section" hidden></div>
@@ -49,16 +52,16 @@
       </section>
 
       <section id="editorWorkspace" class="workspace-view" hidden>
-        <div class="workspace-header"><div><span class="overline">PROPERTY EDITOR</span><h1>文件属性编辑器</h1><p id="editorSummary"></p></div><div class="command-bar"><button class="backHome">返回</button><button id="addEditorFiles">添加文件</button><button id="saveEditorProject">保存项目</button></div></div>
-        <div class="editor-layout"><aside class="explorer"><div class="panel-title"><strong>文件</strong><span class="panel-tools"><span id="editorFileCount"></span><button id="addEditorFilesInline" class="icon-button" title="添加文件" aria-label="添加文件">＋</button></span></div><input id="fileSearch" class="search" placeholder="搜索文件"><div id="editorFileList" class="explorer-list"></div></aside><div id="editorSplitter" class="editor-splitter" role="separator" aria-label="调整文件栏宽度" aria-orientation="vertical" tabindex="0"></div><section id="editorDetail" class="editor-detail empty-state"><div><strong>选择文件开始编辑</strong><p>属性将在这里直接展开，不打开额外弹窗。</p></div></section></div>
+        <div class="workspace-header"><div><span class="overline">PROPERTY EDITOR</span><h1>文件属性编辑器</h1><p id="editorSummary"></p></div><div class="command-bar"><button class="backHome">返回</button></div></div>
+        <div class="editor-layout"><aside class="explorer"><div class="panel-title"><strong class="file-pane-label">文件</strong><span class="panel-tools"><span id="editorFileCount"></span><button id="addEditorFilesInline" class="panel-add" title="添加文件" aria-label="添加文件">＋</button><button id="toggleEditorFiles" class="pane-toggle" title="折叠文件栏" aria-label="折叠文件栏">‹</button></span></div><input id="fileSearch" class="search" placeholder="搜索文件"><div id="editorFileList" class="explorer-list"></div></aside><div id="editorSplitter" class="editor-splitter" role="separator" aria-label="调整文件栏宽度" aria-orientation="vertical" tabindex="0"></div><section id="editorDetail" class="editor-detail empty-state"><div><strong>选择文件开始编辑</strong><p>属性将在这里直接展开，不打开额外弹窗。</p></div></section></div>
       </section>
 
       <section id="watermarkWorkspace" class="workspace-view" hidden>
-        <div class="workspace-header"><div><span class="overline">DOCUMENT SANITIZATION</span><h1>文件脱敏</h1><p id="watermarkSummary">选择文件并标记需要清理的内容，保存或另存为时才会真正写入。</p></div><div class="command-bar"><span id="sanitizeBatchActions" class="sanitize-batch-actions" hidden><small id="sanitizeSelectedCount">已选择 0 个文件</small><button id="batchClearWatermarks">一键清除水印</button><button id="batchClearMetadata">一键清除文件属性</button></span><button class="backHome">返回</button><button id="addSanitizeFiles">添加文件</button><button id="sanitizeSave">保存</button><button id="sanitizeSaveAs" class="primary">另存为</button></div></div>
+        <div class="workspace-header"><div><span class="overline">DOCUMENT SANITIZATION</span><h1>文件脱敏</h1><p id="watermarkSummary">选择文件并标记需要清理的内容，保存或另存为时才会真正写入。</p></div><div class="command-bar"><span id="sanitizeBatchActions" class="sanitize-batch-actions" hidden><small id="sanitizeSelectedCount">已选择 0 个文件</small><button id="batchClearWatermarks">一键清除水印</button><button id="batchClearMetadata">一键清除文件属性</button></span><button class="backHome">返回</button><button id="sanitizeSave">保存</button><button id="sanitizeSaveAs" class="primary">另存为</button></div></div>
         <div class="notice">水印、背景和批注默认均不删除。左侧可选择一个或多个文件；批量操作只做标记，确认“保存”或“另存为”后才会生效。多个文件另存为时会生成 ZIP 包。</div>
         <div id="watermarkResults" class="watermark-results" hidden></div>
         <div class="sanitize-layout">
-          <aside class="sanitize-files"><div class="panel-title"><label class="sanitize-select-all"><input id="sanitizeSelectAll" type="checkbox"> 全选</label><span id="sanitizeFileCount"></span><button id="toggleSanitizeFiles" class="pane-toggle" title="折叠文件栏" aria-label="折叠文件栏">‹</button></div><div id="sanitizeFileList"></div></aside>
+          <aside class="sanitize-files"><div class="panel-title"><strong class="file-pane-label">文件</strong><label class="sanitize-select-all"><input id="sanitizeSelectAll" type="checkbox"> 全选</label><span id="sanitizeFileCount"></span><button id="clearSanitizeFiles" class="panel-clear" type="button" title="清空文件列表">清空</button><button id="addSanitizeFiles" class="panel-add" type="button" title="添加文件" aria-label="添加文件">＋</button><button id="toggleSanitizeFiles" class="pane-toggle" title="折叠文件栏" aria-label="折叠文件栏">‹</button></div><div id="sanitizeFileList"></div></aside>
           <section class="sanitize-comparison">
             <div class="sanitize-comparison-title"><strong>属性或内容</strong><strong>脱敏前</strong><strong>脱敏后 <small id="sanitizeChangeCount">0 项变化</small></strong></div>
             <div id="revisionWarning"></div>
@@ -67,22 +70,45 @@
         </div>
       </section>
 
-      <section id="imageWorkspace" class="workspace-view" hidden>
-        <div class="workspace-header"><div><span class="overline">OFFICE MEDIA STUDIO</span><h1>媒体助理</h1><p id="imageSummary">从 Office 文档中提取内置图片和视频，不修改源文件。</p></div><div class="command-bar"><span id="imageBatchActions" class="image-batch-actions" hidden><small id="imageSelectedCount">已选择 0 项</small><span class="media-action-group"><i>编辑</i><button id="imageWatermarkAction">加水印</button><button id="imageGrayscaleAction">转黑白</button><button id="videoCompressAction">压缩视频</button></span><span class="media-action-group output"><i>输出</i><button id="imageCopyAction">复制</button><button id="mediaSave" disabled>保存</button><button id="exportImages" class="primary" disabled>另存为</button></span></span><button class="backHome">返回</button><button id="addImageFiles">添加文件</button></div></div>
-        <div class="image-studio-layout">
-          <aside class="image-source-files"><div class="panel-title"><label><input id="imageFileSelectAll" type="checkbox"> 全选文件</label><span id="imageFileCount"></span><button id="toggleImageFiles" class="pane-toggle" title="折叠文件栏" aria-label="折叠文件栏">‹</button></div><div id="imageSourceList"></div></aside>
-          <section class="image-gallery-panel"><div class="image-gallery-toolbar"><label><input id="imageSelectAll" type="checkbox"> 全选当前媒体</label><span id="imageGalleryCount"></span><button id="clearImageEffects" class="quiet" hidden>清除图片处理</button></div><div id="imageSelectionTray" class="image-selection-tray" hidden></div><div id="imageGallery" class="image-gallery"></div></section>
-          <aside id="imagePreviewPane" class="image-preview-pane"><header><div><strong>媒体预览</strong><small>双击图片或视频可在此查看</small></div><button id="closeImagePreview" aria-label="关闭预览">×</button></header><div id="imagePreviewContent" class="image-preview-empty">双击相册中的媒体<br>查看原始内容和处理后效果</div></aside>
+      <section id="settingsWorkspace" class="workspace-view monitor-workspace" hidden>
+        <div class="workspace-header"><div><span class="overline">AUTOMATION</span><h1>?????</h1><p>????????????????????????????</p></div><div class="command-bar"><button class="backHome">??</button><button id="saveMonitorSettings" class="primary">????</button></div></div>
+        <div class="monitor-layout">
+          <section class="monitor-settings-card">
+            <div class="monitor-master"><div><strong>?????</strong><small>??????????????</small></div><label class="monitor-switch"><input id="monitorEnabled" type="checkbox"><i></i></label></div>
+            <div class="monitor-field"><div><strong>?????</strong><small>?????????</small></div><button id="addMonitorFolder">?????</button></div>
+            <div id="monitorFolderList" class="monitor-folder-list"></div>
+            <label class="monitor-inline-option"><input id="monitorRecursive" type="checkbox"> ????????</label>
+            <div class="monitor-section-title"><strong>????</strong><small>?????????????????????</small></div>
+            <div class="monitor-choice-grid">
+              <label><input type="radio" name="monitorNotification" value="popup"><span><strong>????</strong><small>???????? PreSalesX????????</small></span></label>
+              <label><input type="radio" name="monitorNotification" value="quiet"><span><strong>????</strong><small>??????????????????</small></span></label>
+            </div>
+            <div class="monitor-section-title"><strong>????</strong><small>???????????????????</small></div>
+            <div id="monitorExtensions" class="monitor-extension-grid"></div>
+            <div id="monitorSaveStatus" class="monitor-save-status">??????</div>
+          </section>
+          <section class="monitor-inbox-card">
+            <header><div><strong>????</strong><small>????????????</small></div><span id="monitorInboxCount">0 ?</span></header>
+            <div id="monitorInbox" class="monitor-inbox-empty"><strong>?????</strong><span>????????????????</span></div>
+          </section>
         </div>
-        <aside id="imageEffectPanel" class="image-effect-panel" hidden>
-          <div class="image-effect-head"><div><span class="overline">BATCH EFFECT</span><strong>批量加水印</strong></div><button id="closeImageEffect" aria-label="关闭">×</button></div>
-          <label>水印类型<select id="watermarkKind"><option value="text">文字水印</option><option value="image">图片水印</option></select></label>
-          <label id="watermarkTextRow">水印文字<input id="watermarkText" value="PreSalesX" maxlength="80"></label>
-          <label id="watermarkImageRow" hidden>水印图片<button id="chooseWatermarkImage">选择图片</button><small id="watermarkImageName">尚未选择</small></label>
-          <label>方向<select id="watermarkDirection"><option value="diagonal">斜向</option><option value="horizontal">横向</option><option value="vertical">竖向</option></select></label>
-          <label>透明度 <output id="watermarkOpacityValue">35%</output><input id="watermarkOpacity" type="range" min="10" max="90" value="35"></label>
-          <div class="image-effect-actions"><button id="cancelImageEffect">取消</button><button id="applyImageWatermark" class="primary">应用到所选图片</button></div>
-        </aside>
+      </section>
+      <section id="imageWorkspace" class="workspace-view" hidden>
+        <div class="workspace-header"><div><span class="overline">DOCUMENT MEDIA ASSISTANT</span><h1>文档媒体助理</h1><p id="imageSummary">集中查看、处理并导出 Office 文档中的图片和视频。</p></div><div class="command-bar"><button class="backHome">返回</button></div></div>
+        <div class="image-studio-layout">
+          <aside class="image-source-files"><div class="panel-title"><strong class="file-pane-label">文件</strong><span id="imageFileCount"></span><button id="addImageFiles" class="panel-add" type="button" title="添加文件" aria-label="添加文件">＋</button><button id="toggleImageFiles" class="pane-toggle" title="折叠文件栏" aria-label="折叠文件栏">‹</button></div><div id="imageSourceList"></div><footer><label><input id="imageFileSelectAll" type="checkbox"> 全选文件</label><button id="sourceMediaSave" disabled>保存</button><button id="sourceMediaSaveAs" disabled>另存为</button></footer></aside>
+          <section class="image-gallery-panel"><div class="image-gallery-toolbar"><div><strong>缩略图</strong><span id="imageGalleryCount"></span></div><label><input id="imageSelectAll" type="checkbox"> 全选</label><div id="imageFileFilters" class="image-file-filters"></div><button id="imageCopyAction" disabled>复制</button><button id="exportImages" class="primary" disabled>打包下载</button><button id="clearImageEffects" class="quiet" hidden>清除处理</button></div><div id="imageSelectionTray" class="image-selection-tray" hidden></div><div id="imageGalleryLoad" class="media-load-progress" hidden><progress max="100" value="0"></progress><span>正在加载缩略图</span></div><div id="imageGallery" class="image-gallery"></div></section>
+          <aside id="imagePreviewPane" class="image-preview-pane"><header><div><strong>预览</strong><small>原始内容与实时处理结果</small></div><button id="closeImagePreview" aria-label="关闭预览">×</button></header><div id="imagePreviewLoader" class="media-preview-loader" hidden><div class="spinner"></div><strong>正在加载媒体预览</strong><progress max="100"></progress><small>大型图片或视频可能需要几秒钟</small></div><div id="imagePreviewContent" class="image-preview-empty">单击一项媒体查看预览</div></aside>
+          <aside id="imageEditorPane" class="image-editor-pane"><header><strong>编辑</strong><small id="imageSelectedCount">请选择媒体</small></header>
+            <details class="image-tool-section" open><summary>历史记录 <span id="imagePlanCount">0</span></summary><section id="imageExecutionPlan" class="image-execution-plan"><div><p>尚未添加处理步骤</p></div></section></details>
+            <details id="watermarkToolSection" class="image-tool-section"><summary>水印</summary><section id="imageEffectPanel" class="image-effect-panel">
+              <label>类型<select id="watermarkKind"><option value="text">文字水印</option><option value="image">图片水印</option></select></label><label id="watermarkTextRow">文字<div class="watermark-text-control"><input id="watermarkText" maxlength="80"><button id="refreshWatermarkTime" type="button" title="刷新为当前时间" aria-label="刷新为当前时间">↻</button></div></label><label id="watermarkImageRow" hidden>图片<div class="watermark-image-picker"><button id="chooseWatermarkImage" type="button">选择图片</button><div class="watermark-image-preview"><img id="watermarkImagePreview" alt="水印图片预览" hidden><span id="watermarkImageName">尚未选择</span></div></div></label><label>方向<select id="watermarkDirection"><option value="diagonal">斜向</option><option value="horizontal">横向</option><option value="vertical">竖向</option></select></label><label>透明度 <output id="watermarkOpacityValue">35%</output><input id="watermarkOpacity" type="range" min="10" max="90" value="35"></label><div class="image-color-actions"><button id="cancelImageEffect" type="button">取消</button><button id="applyImageWatermark" class="primary">应用</button></div><button id="closeImageEffect" hidden></button>
+            </section></details>
+            <details id="colorToolSection" class="image-tool-section"><summary>调色</summary><section class="image-color-tools"><label class="image-color-option"><span><strong>黑白</strong><small>转换为灰度效果</small></span><input id="imageGrayscaleAction" type="checkbox" disabled><i aria-hidden="true"></i></label><label>对比度 <output id="contrastValue">100%</output><input id="imageContrast" type="range" min="50" max="150" value="100"></label><label>饱和度 <output id="saturationValue">100%</output><input id="imageSaturation" type="range" min="0" max="200" value="100"></label><div class="image-color-actions"><button id="cancelImageColor" disabled>取消</button><button id="applyImageColor" class="primary" disabled>应用</button></div><small class="tool-note">调整只在“处理后”实时预览，应用后才加入历史记录。</small></section></details>
+            <details id="videoToolSection" class="image-tool-section" open hidden><summary>视频</summary><section><button id="videoCompressAction" disabled>配置视频压缩</button><small class="tool-note">压缩需要实际执行，暂不支持实时预览。</small></section></details>
+            <span id="imageBatchActions" hidden></span><button id="imageWatermarkAction" hidden disabled></button>
+          </aside>
+        </div>
         <aside id="videoCompressionPanel" class="video-compression-panel" hidden>
           <div><span class="overline">VIDEO COMPRESSION</span><strong>压缩视频</strong><small id="videoCompressionSource">正在读取视频信息…</small></div>
           <label>视频码率（kbps）<input id="videoBitrate" type="number" min="64" value="2095"></label>
@@ -93,8 +119,9 @@
         <section id="mediaTaskConsole" class="media-task-console"><button id="toggleMediaTerminal"><span><strong id="mediaTaskLabel">处理任务</strong><small id="mediaTaskPercent">就绪</small></span><progress id="mediaTaskProgress" value="0" max="100"></progress><i>⌃</i></button><pre id="mediaTaskTerminal" hidden></pre></section>
       </section>
     </main>
+    <div id="monitorToastStack" class="monitor-toast-stack" aria-live="polite"></div>
     <aside id="propertyDrawer" class="property-drawer" hidden><div class="drawer-head"><div><span>属性编辑器</span><strong id="drawerContext"></strong></div><button id="closeDrawer" aria-label="关闭">×</button></div><section id="drawerDetail" class="drawer-body"></section></aside>
-    <footer class="statusbar"><span><i></i> 本地模式</span><span id="statusText">就绪</span><span>PreSalesX 1.3.0</span></footer>
+    <footer class="statusbar"><span><i></i> 本地模式</span><span id="statusText">就绪</span><span>PreSalesX 1.3.1</span></footer>
   </div>
   <script src="app.js"></script>
 </body>

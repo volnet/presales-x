@@ -48,7 +48,7 @@ test('watermark workspace and companion are first-class local features',()=>{
   assert.match(main,/sanitize-files-batch/);
   assert.match(main,/批量脱敏文件\.zip/);
   assert.match(main,/let name=path\.basename\(sourcePath\)/);
-  assert.match(app,/class="sanitize-kind"/);
+  assert.match(app,/class="file-type-icon"/);
   assert.match(html,/id="sanitizeSave"/);
   assert.match(html,/id="sanitizeSaveAs"/);
   assert.doesNotMatch(html,/Word、Excel、PDF/);
@@ -88,27 +88,36 @@ test('watermark workspace and companion are first-class local features',()=>{
   assert.match(companionApp,/moveDrag\(queuedDragPoint\)/);
   assert.match(read('src/companion-preload.js'),/companion-drag-move/);
   assert.match(main,/ipcMain\.on\('companion-drag-move'/);
+  assert.match(main,/setInterval\(moveCompanionWithCursor,16\)/);
+  assert.match(main,/screen\.getCursorScreenPoint\(\)/);
+  assert.match(read('src/companion/app.js'),/lostpointercapture/);
+  assert.match(companionApp,/lostpointercapture',\(\)=>\{\}/);
+  assert.match(companionApp,/window\.addEventListener\('pointerup',stopDrag,true\)/);
+  assert.doesNotMatch(companionApp,/lostpointercapture[^\n]*stopDrag/);
+  assert.match(main,/function stopCompanionDrag\(\)/);
+  assert.match(main,/else\{stopCompanionDrag\(\);companion\.hide\(\);\}/);
   assert.match(main,/getDisplayNearestPoint/);
   assert.match(companionCss,/\.bubble\{visibility:hidden/);
   assert.match(companionCss,/\.bubble\.visible\{visibility:visible/);
 });
 
-test('Office image studio supports album selection, batch effects and export',()=>{
+test('document media assistant supports selection, editing, preview and export',()=>{
   const html=read('src/ui/index.html'),app=read('src/ui/app.js'),main=read('src/main.js'),preload=read('src/preload.js'),css=read('src/ui/refactor.css');
   assert.match(html,/data-mode="images"/);assert.match(html,/id="imageWorkspace"/);assert.match(html,/id="imageGallery"/);
-  assert.match(html,/批量加水印/);assert.match(html,/>转黑白</);assert.match(html,/横向/);assert.match(html,/竖向/);assert.match(html,/斜向/);assert.match(html,/透明度/);
+  assert.match(html,/文档媒体助理/);assert.match(html,/水印/);assert.match(html,/id="imageGrayscaleAction" type="checkbox"/);assert.match(html,/对比度/);assert.match(html,/饱和度/);assert.match(html,/横向/);assert.match(html,/竖向/);assert.match(html,/斜向/);assert.match(html,/透明度/);
   assert.match(app,/inspectOfficeImages/);assert.match(app,/transformImage/);assert.match(app,/getImageData/);assert.match(app,/pickWatermarkImage/);assert.match(app,/exportOfficeImages/);
   assert.match(main,/inspect-office-images/);assert.match(main,/export-office-images/);assert.match(preload,/pickImageSourceFiles/);
   assert.match(css,/\.image-gallery\{/);assert.match(css,/grid-template-columns:repeat\(auto-fill/);assert.doesNotMatch(main,/LibreOffice|soffice/);
   assert.match(html,/id="imagePreviewPane"/);assert.match(html,/id="imageSelectionTray"/);assert.match(html,/id="imageCopyAction"/);
-  assert.match(app,/ondblclick=.*showImagePreview/);assert.match(app,/oncontextmenu/);assert.match(app,/event\.metaKey/);assert.match(app,/copyOfficeImages/);
+  assert.match(app,/gallery\.onclick=.*galleryClickTimer/);assert.match(app,/gallery\.ondblclick=.*openMediaPreview/);assert.match(app,/gallery\.oncontextmenu/);assert.match(app,/event\.metaKey/);assert.match(app,/copyOfficeImages/);
+  assert.match(html,/id="imageGalleryLoad"/);assert.match(html,/id="imagePreviewLoader"/);assert.match(app,/requestIdleCallback/);assert.match(app,/IntersectionObserver/);assert.match(app,/batchSize=24/);
   assert.match(app,/updateCurrentGallerySelectionState\(\);updateImageActionState\(\)/);assert.match(app,/extensionLabel\(source\)/);assert.match(app,/extensionLabel\(file\)/);
   assert.match(html,/id="toggleSanitizeFiles"/);assert.match(html,/id="toggleImageFiles"/);assert.match(css,/files-collapsed/);
   assert.match(main,/copy-office-images/);assert.match(read('src/image-clipboard.js'),/clipboard\.write/);
   assert.match(html,/媒体助理/);assert.doesNotMatch(html,/>图片提取</);assert.match(app,/mediaType==='video'/);assert.match(app,/<video/);assert.match(app,/media-format-badge/);assert.match(css,/\.media-format-badge/);
   assert.match(read('src/office-images.js'),/video\/mp4/);assert.match(read('src/office-images.js'),/videoPreviewable/);
   assert.match(html,/id="videoCompressionPanel"/);assert.match(html,/id="mediaTaskConsole"/);assert.match(html,/视频码率/);assert.match(html,/音频码率/);
-  assert.match(html,/media-action-group/);assert.match(html,/>编辑</);assert.match(html,/>输出</);assert.match(app,/showMediaContextMenu/);assert.match(app,/handleMediaAction/);
+  assert.match(html,/id="imageEditorPane"/);assert.match(html,/历史记录/);assert.match(html,/id="imageExecutionPlan"/);assert.match(main,/show-thumbnail-context-menu/);assert.match(preload,/showThumbnailContextMenu/);
   assert.match(app,/imagePreviewContent.*oncontextmenu/);
   assert.match(app,/onMediaTaskProgress/);assert.match(app,/canvas-process/);assert.match(main,/compress-office-video/);assert.match(read('src/video-processor.js'),/-progress/);
 });
@@ -157,6 +166,16 @@ test('batch review and property editor are separate workspaces',()=>{
   assert.match(html,/操作记录/);
   assert.match(app,/--supplier-count:\$\{Math\.max\(1,data\.supplierStats\.length\)\}/);
   assert.match(css,/repeat\(var\(--supplier-count\),minmax\(245px,1fr\)\)/);
+});
+
+test('project open and save actions belong to supplier review',()=>{
+  const html=read('src/ui/index.html');
+  const compare=html.match(/id="compareWorkspace"[\s\S]*?id="editorWorkspace"/)?.[0]||'';
+  const editor=html.match(/id="editorWorkspace"[\s\S]*?id="watermarkWorkspace"/)?.[0]||'';
+  assert.match(compare,/<button id="openProject">打开检查项目<\/button>/);
+  assert.match(compare,/id="saveProject"[^>]*>保存检查项目</);
+  assert.doesNotMatch(editor,/openProject|saveEditorProject/);
+  assert.doesNotMatch(html,/title-actions"><button id="openProject"/);
 });
 
 test('property editor has a draggable file pane and compact add control',()=>{
@@ -220,13 +239,13 @@ test('visible product branding uses PreSalesX consistently',()=>{
   assert.doesNotMatch(source,forbidden);
 });
 
-test('application and release artifacts use version 1.3.0 consistently',()=>{
+test('application and release artifacts use version 1.3.1 consistently',()=>{
   const manifest=JSON.parse(read('package.json'));
   const html=read('src/ui/index.html');
   const analyzer=read('src/analyzer.js');
   const workflow=read('.github/workflows/release.yml');
-  assert.equal(manifest.version,'1.3.0');
-  assert.match(html,/PreSalesX 1\.3\.0/);
+  assert.equal(manifest.version,'1.3.1');
+  assert.match(html,/PreSalesX 1\.3\.1/);
   assert.match(analyzer,/appVersion:APP_VERSION/);
   assert.match(manifest.scripts['dist:win'],/--win zip --x64/);
   assert.match(manifest.scripts['dist:mac'],/--mac zip --universal/);
@@ -250,7 +269,7 @@ test('chosen files have a readable type badge and the Shiba has stateful happy m
   assert.match(companionCss,/\.face-sleep,\.face-think,\.idea,\.zzz,\.tongue\{opacity:0\}/);
   assert.match(companionCss,/\[data-state="welcome"\] \.tongue/);
   assert.match(companionCss,/@keyframes tongue-happy/);
-  assert.match(uiCss,/\.sanitize-file \.sanitize-kind \{ align-self:center/);
+  assert.match(uiCss,/\.file-type-icon\{[^}]*align-self:center/);
   assert.match(uiCss,/\.sanitize-file>button \{[^}]*align-items:center/);
   assert.match(uiCss,/\.sanitize-file-copy strong \{ font-size:13\.5px/);
   assert.doesNotMatch(uiCss,/\.sanitize-file-copy small \{ font-size:12px/);
@@ -258,4 +277,135 @@ test('chosen files have a readable type badge and the Shiba has stateful happy m
   assert.match(companionHtml,/class="nose"/);
   assert.match(companionCss,/@keyframes puppy-dash/);
   assert.match(read('src/companion/app.js'),/setState\('dash','马上就来！'\)/);
+});
+
+test('sanitization file list clears cleanly and watermark rows explain their content',()=>{
+  const html=read('src/ui/index.html'),app=read('src/ui/app.js'),css=read('src/ui/refactor.css');
+  assert.match(html,/id="clearSanitizeFiles"[^>]*>清空</);
+  assert.match(app,/clearSanitizeFiles/);
+  assert.match(app,/sanitizationFiles=\[\]/);
+  assert.match(app,/clearSanitizeFiles'\)\.disabled=!sanitizationFiles\.length/);
+  assert.match(app,/sanitize-watermark-heading/);
+  assert.match(app,/未能读取水印内容/);
+  assert.match(css,/\.sanitize-watermark-heading>small i/);
+});
+
+test('closing the main window hides it while explicit tray exit closes the companion',()=>{
+  const main=read('src/main.js');
+  assert.match(main,/if\(win\.isMinimized\(\)\)win\.restore\(\);win\.show\(\);win\.setSkipTaskbar\(false\);win\.focus\(\);win\.moveTop\(\)/);
+  assert.match(main,/event\.preventDefault\(\);win\.hide\(\)/);
+  assert.match(main,/function quitApplication\(\)\{quitting=true;[^}]*companion\.destroy\(\);app\.quit\(\);\}/);
+  assert.doesNotMatch(main,/win\.show\(\);win\.restore\(\);win\.focus\(\)/);
+});
+
+test('media assistant separates media downloads from source-file saves',()=>{
+  const html=read('src/ui/index.html'),app=read('src/ui/app.js'),main=read('src/main.js'),preload=read('src/preload.js'),css=read('src/ui/refactor.css');
+  assert.match(html,/image-gallery-toolbar[\s\S]*id="imageCopyAction"[\s\S]*id="exportImages"/);
+  assert.match(html,/image-source-files[\s\S]*id="sourceMediaSave"[\s\S]*id="sourceMediaSaveAs"/);
+  assert.match(html,/id="imageBatchActions"[^>]*hidden/);
+  assert.match(app,/imageBatchActions'\)\.hidden=false/);
+  assert.match(html,/image-source-files[\s\S]*id="addImageFiles"/);
+  assert.match(app,/saveOfficeMediaSources/);assert.match(main,/save-office-media-sources/);assert.match(preload,/saveOfficeMediaSources/);
+  assert.match(css,/\.image-preview-content section>div\{min-width:0;overflow:hidden\}/);
+  assert.match(main,/screen\.getCursorScreenPoint\(\)/);
+});
+
+test('all three document workspaces share a DPI-corrected 600px file pane and extension icon',()=>{
+  const html=read('src/ui/index.html'),app=read('src/ui/app.js'),css=read('src/ui/refactor.css');
+  for(const id of ['addEditorFilesInline','toggleEditorFiles','addSanitizeFiles','toggleSanitizeFiles','addImageFiles','toggleImageFiles'])assert.match(html,new RegExp(`id="${id}"`));
+  assert.match(app,/600\/scale/);assert.match(app,/window\.devicePixelRatio/);assert.match(app,/--file-pane-width/);
+  assert.match(css,/\.editor-layout\{--explorer-width:var\(--file-pane-width,600px\)\}/);
+  assert.match(css,/\.sanitize-layout\{grid-template-columns:var\(--file-pane-width,600px\)/);
+  assert.match(css,/\.image-studio-layout\{grid-template-columns:var\(--file-pane-width,600px\)/);
+  assert.match(css,/\.file-type-icon\{[^}]*width:48px;[^}]*height:48px/);
+  assert.ok((app.match(/class="file-type-icon"/g)||[]).length>=3);
+});
+
+test('media assistant filters source types, sorts by size and exposes a removable execution plan',()=>{
+  const html=read('src/ui/index.html');
+  const app=read('src/ui/app.js');
+  const css=read('src/ui/refactor.css');
+  assert.match(html,/id="imageFileFilters"/);
+  assert.match(html,/id="imageExecutionPlan"/);
+  assert.match(app,/imageFileTypeFilters/);
+  assert.match(app,/imageFileSizeSort/);
+  assert.match(app,/data-remove-image-plan/);
+  assert.match(app,/renderImageExecutionPlan/);
+  assert.match(css,/\.image-preview-pane\{grid-template-rows:45px minmax\(0,2fr\) minmax\(120px,1fr\)/);
+});
+
+test('document media assistant uses four local-action panes and conditional preview',()=>{
+  const html=read('src/ui/index.html'),app=read('src/ui/app.js'),main=read('src/main.js'),css=read('src/ui/refactor.css');
+  for(const label of ['文件','缩略图','预览','编辑','历史记录','水印','调色'])assert.match(html,new RegExp(label));
+  assert.match(app,/preview-hidden/);
+  assert.match(app,/targets\.length===1/);
+  assert.match(app,/showThumbnailContextMenu/);
+  assert.match(app,/showDocumentFileMenu/);
+  assert.match(main,/打开方式…/);
+  assert.match(main,/open-media-preview/);
+  assert.match(css,/#imageWorkspace \.image-studio-layout\{grid-template-columns:[^}]*minmax\(360px,1fr\)/);
+  assert.match(css,/#imageWorkspace\.preview-hidden \.image-preview-pane\{display:none\}/);
+});
+
+test('text watermark defaults to second-precision local time and can be refreshed',()=>{
+  const html=read('src/ui/index.html'),app=read('src/ui/app.js');
+  assert.match(html,/id="watermarkText" maxlength="80"/);
+  assert.doesNotMatch(html,/id="watermarkText"[^>]*value="PreSalesX"/);
+  assert.match(html,/id="refreshWatermarkTime"/);
+  assert.match(app,/currentWatermarkTime/);
+  assert.match(app,/getSeconds\(\)/);
+  assert.match(app,/watermarkToolSection'\)\.ontoggle/);
+  assert.match(app,/refreshWatermarkTime'\)\.onclick=refreshWatermarkTime/);
+});
+
+test('media editor panels form a top-aligned Photoshop-inspired light stack',()=>{
+  const css=read('src/ui/refactor.css'),requirements=read('docs/ui-design-requirements.md');
+  assert.match(css,/#imageWorkspace \.image-editor-pane\{display:flex;flex-direction:column/);
+  assert.match(css,/#imageWorkspace \.image-tool-section\{[^}]*border:1px solid/);
+  assert.match(css,/#imageWorkspace \.image-tool-section>summary\{[^}]*background:#edf2f7/);
+  assert.match(css,/image-tool-section label[^}]*font-size:10px/);
+  assert.match(requirements,/所有面板向顶部靠齐/);
+  assert.match(requirements,/不使用 Photoshop 的深色底色/);
+});
+
+test('media editor has safe horizontal padding, video-only controls and watermark thumbnail preview',()=>{
+  const html=read('src/ui/index.html'),app=read('src/ui/app.js'),css=read('src/ui/refactor.css');
+  assert.match(css,/image-editor-pane \.image-tool-section>section\{padding:12px 14px 14px\}/);
+  assert.match(html,/id="videoToolSection"[^>]*hidden/);
+  assert.match(app,/videoToolSection'\)\.hidden=!videos\.length/);
+  assert.match(html,/id="watermarkImagePreview"/);
+  assert.match(app,/preview\.src=watermarkImage\.data/);
+  assert.match(css,/\.watermark-image-preview img\{[^}]*object-fit:contain/);
+});
+
+test('color controls preview live and commit only through apply',()=>{
+  const html=read('src/ui/index.html'),app=read('src/ui/app.js');
+  assert.match(html,/id="cancelImageColor"/);
+  assert.match(html,/调整只在“处理后”实时预览/);
+  assert.match(app,/previewColorAdjustment/);
+  assert.match(app,/imageContrast'\)\.oninput[^\n]*previewColorAdjustment/);
+  assert.match(app,/imageSaturation'\)\.oninput[^\n]*previewColorAdjustment/);
+  assert.match(app,/imageGrayscaleAction'\)\.onchange=previewColorAdjustment/);
+  assert.match(app,/cancelImageColor'\)\.onclick=.*restoreColorPreview/);
+  assert.match(app,/applyImageColor'\)\.onclick=.*planOperations\.push/);
+});
+
+test('watermark and color panels start collapsed with symmetric apply and cancel actions',()=>{
+  const html=read('src/ui/index.html'),app=read('src/ui/app.js'),css=read('src/ui/refactor.css');
+  assert.match(html,/id="watermarkToolSection" class="image-tool-section"><summary>水印/);
+  assert.match(html,/id="colorToolSection" class="image-tool-section"><summary>调色/);
+  assert.match(html,/id="cancelImageEffect"[^>]*>取消</);
+  assert.match(html,/id="applyImageWatermark"[^>]*>应用</);
+  assert.match(app,/cancelImageEffect'\)\.onclick=.*watermarkToolSection'\)\.open=false/);
+  assert.match(app,/applyImageWatermark'\)\.onclick=.*watermarkToolSection'\)\.open=false/);
+  assert.match(css,/\.image-color-option i\{[^}]*border-radius:999px/);
+  assert.match(css,/image-color-option input:checked\+i/);
+});
+
+test('collapsed file panes retain the file label and extension glyph rail',()=>{
+  const html=read('src/ui/index.html');
+  const css=read('src/ui/refactor.css');
+  assert.match(html,/file-pane-label">文件/);
+  assert.match(css,/\.files-collapsed \.file-type-icon\{display:grid/);
+  assert.match(css,/files-collapsed[^}]*explorer-list/);
 });
