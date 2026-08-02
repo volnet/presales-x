@@ -8,13 +8,14 @@
   <link rel="stylesheet" href="pro.css">
   <link rel="stylesheet" href="refactor.css">
   <link rel="stylesheet" href="async-media.css">
+  <link rel="stylesheet" href="monitor.css">
 </head>
 <body>
   <div class="app-shell">
     <header class="titlebar">
       <div class="brand"><img src="assets/presalesx-logo.png" alt=""><div><strong>PreSalesX</strong><span>Pre-Sales Intelligence Workspace</span></div></div>
       <div id="workspaceTitle" class="workspace-title">开始</div>
-      <div class="title-actions"><button id="openProject" class="quiet">打开项目</button></div>
+      <div class="title-actions"></div>
     </header>
     <aside class="activity-bar" aria-label="工作台">
       <button class="activity active" data-home="compare" title="供应商批量审查"><span>⌘</span><small>审查</small></button>
@@ -24,6 +25,7 @@
       <div class="activity-spacer"></div>
       <button id="showCompanion" class="companion-launcher" title="显示宠物" aria-label="显示宠物" hidden><svg viewBox="0 0 44 44" aria-hidden="true"><defs><linearGradient id="launcherFur" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3c4654"/><stop offset=".55" stop-color="#171c24"/><stop offset="1" stop-color="#070a0f"/></linearGradient></defs><path d="M7 17 10 5l10 9m17 3L34 5 24 14" fill="url(#launcherFur)" stroke="#05070b" stroke-width="1.5" stroke-linejoin="round"/><path d="m10 8 2 7 5-2m17-5-2 7-5-2" fill="#a95e54"/><circle cx="22" cy="23" r="15.5" fill="url(#launcherFur)" stroke="#05070b" stroke-width="1.5"/><path d="M11 24q3-8 11-5 8-3 11 5 0 11-11 13-11-2-11-13" fill="#e2a362"/><ellipse cx="16.5" cy="21" rx="4" ry="5" fill="#07101c"/><ellipse cx="27.5" cy="21" rx="4" ry="5" fill="#07101c"/><circle cx="15.3" cy="19.4" r="1.5" fill="#fff"/><circle cx="26.3" cy="19.4" r="1.5" fill="#fff"/><circle cx="17.8" cy="22.8" r=".7" fill="#64cfff"/><circle cx="28.8" cy="22.8" r=".7" fill="#64cfff"/><path d="M18.5 27q3.5-3 7 0-1 4-3.5 4t-3.5-4" fill="#11151b"/><path d="M22 31q-3 3-6 0m6 0q3 3 6 0" fill="none" stroke="#4b2c21" stroke-width="1.6" stroke-linecap="round"/><path d="M16 35q6 3 12 0" fill="none" stroke="#2a79ff" stroke-width="2.3" stroke-linecap="round"/><path d="m22 34 2 2-2 2-2-2z" fill="#8de5ff" stroke="#1475df" stroke-width=".7"/></svg></button>
       <button id="newWorkspace" class="activity" title="新建工作台"><span>＋</span><small>新建</small></button>
+      <button id="monitorSettingsEntry" class="activity" title="???????"><span>?</span><small>??</small></button>
     </aside>
     <main class="workbench">
       <section id="start" class="start-view">
@@ -42,7 +44,7 @@
       <section id="working" class="working-view" hidden><img src="assets/presalesx-logo.png" alt=""><div class="spinner"></div><h2 id="workingTitle">正在本地审查</h2><p id="step">准备文件…</p><progress id="bar" value="0" max="100"></progress><small>所有文件只在本机处理，不会上传。</small></section>
 
       <section id="compareWorkspace" class="workspace-view" hidden>
-        <div class="workspace-header"><div><span class="overline">SUPPLIER REVIEW</span><h1 id="compareProjectName"></h1><p id="compareSummary"></p></div><div class="command-bar"><button class="backHome">返回</button><button id="saveProject">保存项目</button><button id="exportPdf">导出 PDF</button><button id="exportXlsx" class="primary">导出操作报告</button></div></div>
+        <div class="workspace-header"><div><span class="overline">SUPPLIER REVIEW</span><h1 id="compareProjectName"></h1><p id="compareSummary"></p></div><div class="command-bar"><button class="backHome">返回</button><button id="openProject">打开检查项目</button><button id="saveProject">保存检查项目</button><button id="exportPdf">导出 PDF</button><button id="exportXlsx" class="primary">导出操作报告</button></div></div>
         <nav class="workspace-tabs"><button class="workspace-tab active" data-section="overview">文件审查</button><button class="workspace-tab" data-section="attributes">属性重复审查</button><button class="workspace-tab" data-section="report">操作记录</button></nav>
         <div id="compareOverview" class="workspace-section"></div>
         <div id="compareAttributes" class="workspace-section" hidden></div>
@@ -50,7 +52,7 @@
       </section>
 
       <section id="editorWorkspace" class="workspace-view" hidden>
-        <div class="workspace-header"><div><span class="overline">PROPERTY EDITOR</span><h1>文件属性编辑器</h1><p id="editorSummary"></p></div><div class="command-bar"><button class="backHome">返回</button><button id="saveEditorProject">保存项目</button></div></div>
+        <div class="workspace-header"><div><span class="overline">PROPERTY EDITOR</span><h1>文件属性编辑器</h1><p id="editorSummary"></p></div><div class="command-bar"><button class="backHome">返回</button></div></div>
         <div class="editor-layout"><aside class="explorer"><div class="panel-title"><strong class="file-pane-label">文件</strong><span class="panel-tools"><span id="editorFileCount"></span><button id="addEditorFilesInline" class="panel-add" title="添加文件" aria-label="添加文件">＋</button><button id="toggleEditorFiles" class="pane-toggle" title="折叠文件栏" aria-label="折叠文件栏">‹</button></span></div><input id="fileSearch" class="search" placeholder="搜索文件"><div id="editorFileList" class="explorer-list"></div></aside><div id="editorSplitter" class="editor-splitter" role="separator" aria-label="调整文件栏宽度" aria-orientation="vertical" tabindex="0"></div><section id="editorDetail" class="editor-detail empty-state"><div><strong>选择文件开始编辑</strong><p>属性将在这里直接展开，不打开额外弹窗。</p></div></section></div>
       </section>
 
@@ -68,6 +70,29 @@
         </div>
       </section>
 
+      <section id="settingsWorkspace" class="workspace-view monitor-workspace" hidden>
+        <div class="workspace-header"><div><span class="overline">AUTOMATION</span><h1>?????</h1><p>????????????????????????????</p></div><div class="command-bar"><button class="backHome">??</button><button id="saveMonitorSettings" class="primary">????</button></div></div>
+        <div class="monitor-layout">
+          <section class="monitor-settings-card">
+            <div class="monitor-master"><div><strong>?????</strong><small>??????????????</small></div><label class="monitor-switch"><input id="monitorEnabled" type="checkbox"><i></i></label></div>
+            <div class="monitor-field"><div><strong>?????</strong><small>?????????</small></div><button id="addMonitorFolder">?????</button></div>
+            <div id="monitorFolderList" class="monitor-folder-list"></div>
+            <label class="monitor-inline-option"><input id="monitorRecursive" type="checkbox"> ????????</label>
+            <div class="monitor-section-title"><strong>????</strong><small>?????????????????????</small></div>
+            <div class="monitor-choice-grid">
+              <label><input type="radio" name="monitorNotification" value="popup"><span><strong>????</strong><small>???????? PreSalesX????????</small></span></label>
+              <label><input type="radio" name="monitorNotification" value="quiet"><span><strong>????</strong><small>??????????????????</small></span></label>
+            </div>
+            <div class="monitor-section-title"><strong>????</strong><small>???????????????????</small></div>
+            <div id="monitorExtensions" class="monitor-extension-grid"></div>
+            <div id="monitorSaveStatus" class="monitor-save-status">??????</div>
+          </section>
+          <section class="monitor-inbox-card">
+            <header><div><strong>????</strong><small>????????????</small></div><span id="monitorInboxCount">0 ?</span></header>
+            <div id="monitorInbox" class="monitor-inbox-empty"><strong>?????</strong><span>????????????????</span></div>
+          </section>
+        </div>
+      </section>
       <section id="imageWorkspace" class="workspace-view" hidden>
         <div class="workspace-header"><div><span class="overline">DOCUMENT MEDIA ASSISTANT</span><h1>文档媒体助理</h1><p id="imageSummary">集中查看、处理并导出 Office 文档中的图片和视频。</p></div><div class="command-bar"><button class="backHome">返回</button></div></div>
         <div class="image-studio-layout">
@@ -94,6 +119,7 @@
         <section id="mediaTaskConsole" class="media-task-console"><button id="toggleMediaTerminal"><span><strong id="mediaTaskLabel">处理任务</strong><small id="mediaTaskPercent">就绪</small></span><progress id="mediaTaskProgress" value="0" max="100"></progress><i>⌃</i></button><pre id="mediaTaskTerminal" hidden></pre></section>
       </section>
     </main>
+    <div id="monitorToastStack" class="monitor-toast-stack" aria-live="polite"></div>
     <aside id="propertyDrawer" class="property-drawer" hidden><div class="drawer-head"><div><span>属性编辑器</span><strong id="drawerContext"></strong></div><button id="closeDrawer" aria-label="关闭">×</button></div><section id="drawerDetail" class="drawer-body"></section></aside>
     <footer class="statusbar"><span><i></i> 本地模式</span><span id="statusText">就绪</span><span>PreSalesX 1.3.1</span></footer>
   </div>

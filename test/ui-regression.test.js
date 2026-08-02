@@ -91,6 +91,11 @@ test('watermark workspace and companion are first-class local features',()=>{
   assert.match(main,/setInterval\(moveCompanionWithCursor,16\)/);
   assert.match(main,/screen\.getCursorScreenPoint\(\)/);
   assert.match(read('src/companion/app.js'),/lostpointercapture/);
+  assert.match(companionApp,/lostpointercapture',\(\)=>\{\}/);
+  assert.match(companionApp,/window\.addEventListener\('pointerup',stopDrag,true\)/);
+  assert.doesNotMatch(companionApp,/lostpointercapture[^\n]*stopDrag/);
+  assert.match(main,/function stopCompanionDrag\(\)/);
+  assert.match(main,/else\{stopCompanionDrag\(\);companion\.hide\(\);\}/);
   assert.match(main,/getDisplayNearestPoint/);
   assert.match(companionCss,/\.bubble\{visibility:hidden/);
   assert.match(companionCss,/\.bubble\.visible\{visibility:visible/);
@@ -161,6 +166,16 @@ test('batch review and property editor are separate workspaces',()=>{
   assert.match(html,/操作记录/);
   assert.match(app,/--supplier-count:\$\{Math\.max\(1,data\.supplierStats\.length\)\}/);
   assert.match(css,/repeat\(var\(--supplier-count\),minmax\(245px,1fr\)\)/);
+});
+
+test('project open and save actions belong to supplier review',()=>{
+  const html=read('src/ui/index.html');
+  const compare=html.match(/id="compareWorkspace"[\s\S]*?id="editorWorkspace"/)?.[0]||'';
+  const editor=html.match(/id="editorWorkspace"[\s\S]*?id="watermarkWorkspace"/)?.[0]||'';
+  assert.match(compare,/<button id="openProject">打开检查项目<\/button>/);
+  assert.match(compare,/id="saveProject"[^>]*>保存检查项目</);
+  assert.doesNotMatch(editor,/openProject|saveEditorProject/);
+  assert.doesNotMatch(html,/title-actions"><button id="openProject"/);
 });
 
 test('property editor has a draggable file pane and compact add control',()=>{
@@ -275,10 +290,11 @@ test('sanitization file list clears cleanly and watermark rows explain their con
   assert.match(css,/\.sanitize-watermark-heading>small i/);
 });
 
-test('closing the main window exits the companion with the application',()=>{
+test('closing the main window hides it while explicit tray exit closes the companion',()=>{
   const main=read('src/main.js');
-  assert.match(main,/if\(win\.isMinimized\(\)\)win\.restore\(\);win\.show\(\);win\.focus\(\)/);
-  assert.match(main,/win\.on\('close',\(\)=>\{quitting=true;if\(companion&&!companion\.isDestroyed\(\)\)companion\.destroy\(\);\}/);
+  assert.match(main,/if\(win\.isMinimized\(\)\)win\.restore\(\);win\.show\(\);win\.setSkipTaskbar\(false\);win\.focus\(\);win\.moveTop\(\)/);
+  assert.match(main,/event\.preventDefault\(\);win\.hide\(\)/);
+  assert.match(main,/function quitApplication\(\)\{quitting=true;[^}]*companion\.destroy\(\);app\.quit\(\);\}/);
   assert.doesNotMatch(main,/win\.show\(\);win\.restore\(\);win\.focus\(\)/);
 });
 
