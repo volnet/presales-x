@@ -41,11 +41,27 @@ test('closing the main window keeps PreSalesX alive in the system tray',()=>{
   assert.match(main,/label:'退出 PreSalesX',click:quitApplication/);
   assert.match(main,/function quitApplication\(\)\{quitting=true;/);
   assert.match(main,/requestSingleInstanceLock\(\)/);
-  assert.match(main,/app\.on\('second-instance',showMain\)/);
+  assert.match(main,/app\.on\('second-instance',\(_event,argv\)=>deliverContextRequest\(parseContextRequest\(argv\)\)\)/);
 });
 
 test('clicking a system notification restores the existing alert without duplicating it',()=>{
   const app=read('src/ui/app.js');
   assert.match(app,/monitorNotificationApi\.onOpen\(item=>\{setStatus/);
   assert.doesNotMatch(app,/monitorNotificationApi\.onOpen\(item=>\{showMonitorToast/);
+});
+
+test('configuration exposes cross-platform context-menu controls',()=>{
+  const app=read('src/ui/app.js'),css=read('src/ui/monitor.css');
+  assert.match(app,/data-settings-panel="monitor"/);
+  assert.match(app,/data-settings-panel="system"/);
+  assert.match(app,/id="monitorSettingsPanel"/);
+  assert.match(app,/id="systemMenuPanel"/);
+  assert.match(app,/id="systemMenuToggle"/);
+  assert.doesNotMatch(app,/id="systemMenuAction"/);
+  assert.match(app,/systemContextMenuApi\[action\]\(\)/);
+  assert.match(app,/systemContextMenuApi\.onOpen/);
+  assert.match(css,/\.settings-shell/);
+  assert.match(css,/\.settings-nav/);
+  assert.match(css,/\.system-menu-master/);
+  assert.match(css,/\.system-menu-title-line/);
 });
