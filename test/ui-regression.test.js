@@ -239,13 +239,13 @@ test('visible product branding uses PreSalesX consistently',()=>{
   assert.doesNotMatch(source,forbidden);
 });
 
-test('application and release artifacts use version 1.3.1 consistently',()=>{
+test('application and release artifacts use version 1.3.2 consistently',()=>{
   const manifest=JSON.parse(read('package.json'));
   const html=read('src/ui/index.html');
   const analyzer=read('src/analyzer.js');
   const workflow=read('.github/workflows/release.yml');
-  assert.equal(manifest.version,'1.3.1');
-  assert.match(html,/PreSalesX 1\.3\.1/);
+  assert.equal(manifest.version,'1.3.2');
+  assert.match(html,/PreSalesX 1\.3\.2/);
   assert.match(analyzer,/appVersion:APP_VERSION/);
   assert.match(manifest.scripts['dist:win'],/--win zip --x64/);
   assert.match(manifest.scripts['dist:mac'],/--mac zip --universal/);
@@ -301,13 +301,21 @@ test('closing the main window hides it while explicit tray exit closes the compa
 test('media assistant separates media downloads from source-file saves',()=>{
   const html=read('src/ui/index.html'),app=read('src/ui/app.js'),main=read('src/main.js'),preload=read('src/preload.js'),css=read('src/ui/refactor.css');
   assert.match(html,/image-gallery-toolbar[\s\S]*id="imageCopyAction"[\s\S]*id="exportImages"/);
-  assert.match(html,/image-source-files[\s\S]*id="sourceMediaSave"[\s\S]*id="sourceMediaSaveAs"/);
+  assert.match(html,/workspace-header[\s\S]*id="sourceMediaSave"[\s\S]*id="sourceMediaSaveAs"[\s\S]*image-studio-layout/);
   assert.match(html,/id="imageBatchActions"[^>]*hidden/);
   assert.match(app,/imageBatchActions'\)\.hidden=false/);
   assert.match(html,/image-source-files[\s\S]*id="addImageFiles"/);
   assert.match(app,/saveOfficeMediaSources/);assert.match(main,/save-office-media-sources/);assert.match(preload,/saveOfficeMediaSources/);
   assert.match(css,/\.image-preview-content section>div\{min-width:0;overflow:hidden\}/);
   assert.match(main,/screen\.getCursorScreenPoint\(\)/);
+});
+
+test('media assistant keeps document actions in the header and progress in the editor pane',()=>{
+  const html=read('src/ui/index.html'),css=read('src/ui/refactor.css');
+  assert.match(html,/<aside id="imageEditorPane"[\s\S]*id="mediaTaskConsole"[\s\S]*<\/aside>/);
+  assert.equal((html.match(/id="mediaTaskConsole"/g)||[]).length,1);
+  assert.match(css,/image-editor-pane \.media-task-console\{position:sticky;bottom:0/);
+  assert.match(css,/image-editor-pane \.media-task-console>button\{grid-template-columns:minmax\(0,1fr\) 18px/);
 });
 
 test('all three document workspaces share a DPI-corrected 600px file pane and extension icon',()=>{

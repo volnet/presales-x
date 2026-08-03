@@ -94,9 +94,9 @@
         </div>
       </section>
       <section id="imageWorkspace" class="workspace-view" hidden>
-        <div class="workspace-header"><div><span class="overline">DOCUMENT MEDIA ASSISTANT</span><h1>文档媒体助理</h1><p id="imageSummary">集中查看、处理并导出 Office 文档中的图片和视频。</p></div><div class="command-bar"><button class="backHome">返回</button></div></div>
+        <div class="workspace-header"><div><span class="overline">DOCUMENT MEDIA ASSISTANT</span><h1>文档媒体助理</h1><p id="imageSummary">集中查看、处理并导出 Office 文档中的图片和视频。</p></div><div class="command-bar"><button class="backHome">返回</button><button id="sourceMediaSave" disabled>保存</button><button id="sourceMediaSaveAs" class="primary" disabled>另存为</button></div></div>
         <div class="image-studio-layout">
-          <aside class="image-source-files"><div class="panel-title"><strong class="file-pane-label">文件</strong><span id="imageFileCount"></span><button id="addImageFiles" class="panel-add" type="button" title="添加文件" aria-label="添加文件">＋</button><button id="toggleImageFiles" class="pane-toggle" title="折叠文件栏" aria-label="折叠文件栏">‹</button></div><div id="imageSourceList"></div><footer><label><input id="imageFileSelectAll" type="checkbox"> 全选文件</label><button id="sourceMediaSave" disabled>保存</button><button id="sourceMediaSaveAs" disabled>另存为</button></footer></aside>
+          <aside class="image-source-files"><div class="panel-title"><strong class="file-pane-label">文件</strong><span id="imageFileCount"></span><button id="addImageFiles" class="panel-add" type="button" title="添加文件" aria-label="添加文件">＋</button><button id="toggleImageFiles" class="pane-toggle" title="折叠文件栏" aria-label="折叠文件栏">‹</button></div><div id="imageSourceList"></div><footer><label><input id="imageFileSelectAll" type="checkbox"> 全选文件</label></footer></aside>
           <section class="image-gallery-panel"><div class="image-gallery-toolbar"><div><strong>缩略图</strong><span id="imageGalleryCount"></span></div><label><input id="imageSelectAll" type="checkbox"> 全选</label><div id="imageFileFilters" class="image-file-filters"></div><button id="imageCopyAction" disabled>复制</button><button id="exportImages" class="primary" disabled>打包下载</button><button id="clearImageEffects" class="quiet" hidden>清除处理</button></div><div id="imageSelectionTray" class="image-selection-tray" hidden></div><div id="imageGalleryLoad" class="media-load-progress" hidden><progress max="100" value="0"></progress><span>正在加载缩略图</span></div><div id="imageGallery" class="image-gallery"></div></section>
           <aside id="imagePreviewPane" class="image-preview-pane"><header><div><strong>预览</strong><small>原始内容与实时处理结果</small></div><button id="closeImagePreview" aria-label="关闭预览">×</button></header><div id="imagePreviewLoader" class="media-preview-loader" hidden><div class="spinner"></div><strong>正在加载媒体预览</strong><progress max="100"></progress><small>大型图片或视频可能需要几秒钟</small></div><div id="imagePreviewContent" class="image-preview-empty">单击一项媒体查看预览</div></aside>
           <aside id="imageEditorPane" class="image-editor-pane"><header><strong>编辑</strong><small id="imageSelectedCount">请选择媒体</small></header>
@@ -107,6 +107,7 @@
             <details id="colorToolSection" class="image-tool-section"><summary>调色</summary><section class="image-color-tools"><label class="image-color-option"><span><strong>黑白</strong><small>转换为灰度效果</small></span><input id="imageGrayscaleAction" type="checkbox" disabled><i aria-hidden="true"></i></label><label>对比度 <output id="contrastValue">100%</output><input id="imageContrast" type="range" min="50" max="150" value="100"></label><label>饱和度 <output id="saturationValue">100%</output><input id="imageSaturation" type="range" min="0" max="200" value="100"></label><div class="image-color-actions"><button id="cancelImageColor" disabled>取消</button><button id="applyImageColor" class="primary" disabled>应用</button></div><small class="tool-note">调整只在“处理后”实时预览，应用后才加入历史记录。</small></section></details>
             <details id="videoToolSection" class="image-tool-section" open hidden><summary>视频</summary><section><button id="videoCompressAction" disabled>配置视频压缩</button><small class="tool-note">压缩需要实际执行，暂不支持实时预览。</small></section></details>
             <span id="imageBatchActions" hidden></span><button id="imageWatermarkAction" hidden disabled></button>
+            <section id="mediaTaskConsole" class="media-task-console"><button id="toggleMediaTerminal"><span><strong id="mediaTaskLabel">处理任务</strong><small id="mediaTaskPercent">就绪</small></span><progress id="mediaTaskProgress" value="0" max="100"></progress><i>⌃</i></button><pre id="mediaTaskTerminal" hidden></pre></section>
           </aside>
         </div>
         <aside id="videoCompressionPanel" class="video-compression-panel" hidden>
@@ -116,12 +117,11 @@
           <div class="compression-estimate"><span>预计输出</span><strong id="videoEstimatedSize">—</strong><small id="videoCompressionWarning"></small></div>
           <div class="image-effect-actions"><button id="cancelVideoCompression">取消</button><button id="runVideoCompression" class="primary">开始压缩</button></div>
         </aside>
-        <section id="mediaTaskConsole" class="media-task-console"><button id="toggleMediaTerminal"><span><strong id="mediaTaskLabel">处理任务</strong><small id="mediaTaskPercent">就绪</small></span><progress id="mediaTaskProgress" value="0" max="100"></progress><i>⌃</i></button><pre id="mediaTaskTerminal" hidden></pre></section>
       </section>
     </main>
     <div id="monitorToastStack" class="monitor-toast-stack" aria-live="polite"></div>
     <aside id="propertyDrawer" class="property-drawer" hidden><div class="drawer-head"><div><span>属性编辑器</span><strong id="drawerContext"></strong></div><button id="closeDrawer" aria-label="关闭">×</button></div><section id="drawerDetail" class="drawer-body"></section></aside>
-    <footer class="statusbar"><span><i></i> 本地模式</span><span id="statusText">就绪</span><span>PreSalesX 1.3.1</span></footer>
+    <footer class="statusbar"><span><i></i> 本地模式</span><span id="statusText">就绪</span><span>PreSalesX 1.3.2</span></footer>
   </div>
   <script src="app.js"></script>
 </body>
