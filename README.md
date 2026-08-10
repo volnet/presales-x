@@ -98,7 +98,7 @@ npm.cmd run dist:win
 Windows 免安装完整包输出为：
 
 ```text
-dist\PreSalesX-1.3.2-Windows-x64.zip
+dist\PreSalesX-1.3.3-Windows-x64.zip
 ```
 
 解压后直接运行 `PreSalesX.exe`，无需另行安装 Node.js、Electron 或 npm 依赖。
@@ -109,9 +109,9 @@ macOS Universal 免安装完整包需要在 macOS 构建机上生成：
 npm run dist:mac
 ```
 
-输出为 `dist/PreSalesX-1.3.2-macOS-universal.zip`，同时包含 Intel 与 Apple Silicon 所需运行代码。解压后运行 `PreSalesX.app`，无需另行安装 Node.js 或 npm 依赖。未配置 Apple Developer 签名时，首次启动可能需要在 Finder 中右键选择“打开”。
+输出为 `dist/PreSalesX-1.3.3-macOS-universal.zip`，同时包含 Intel 与 Apple Silicon 所需运行代码。解压后运行 `PreSalesX.app`，无需另行安装 Node.js 或 npm 依赖。未配置 Apple Developer 签名时，首次启动可能需要在 Finder 中右键选择“打开”。
 
-推送 `v1.3.2` 标签后，GitHub Actions 会分别在 Windows 和 macOS 构建机上生成上述两个 ZIP，并自动附加到 GitHub Release。
+推送 `v1.3.3` 标签后，GitHub Actions 会分别在 Windows 和 macOS 构建机上生成上述两个 ZIP，并自动附加到 GitHub Release。
 
 正式对外分发时应配置对应平台的代码签名与 macOS 公证。
 

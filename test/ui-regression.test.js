@@ -62,7 +62,10 @@ test('watermark workspace and companion are first-class local features',()=>{
   assert.doesNotMatch(companionApp,/Math\.random|\.png/);
   assert.match(main,/const width=220,height=220/);
   assert.match(main,/roundedCorners:false/);
-  assert.match(main,/focusable:false/);
+  assert.match(main,/focusable:process\.platform==='darwin'/);
+  assert.match(main,/type:process\.platform==='darwin'\?'panel':undefined/);
+  assert.match(main,/process\.platform==='darwin'\?'presalesx-logo\.png':'presalesx-logo\.ico'/);
+  assert.match(main,/try\{createTray\(\);\}catch\(error\)[\s\S]*createCompanion\(\)/);
   assert.doesNotMatch(main,/titleBarStyle|titleBarOverlay/);
   assert.match(main,/setBackgroundColor\('#00000000'\)/);
   assert.doesNotMatch(main,/setShape|companionShape|nativeImage|useContentSize|setContentSize/);
@@ -107,7 +110,7 @@ test('document media assistant supports selection, editing, preview and export',
   assert.match(html,/文档媒体助理/);assert.match(html,/水印/);assert.match(html,/id="imageGrayscaleAction" type="checkbox"/);assert.match(html,/对比度/);assert.match(html,/饱和度/);assert.match(html,/横向/);assert.match(html,/竖向/);assert.match(html,/斜向/);assert.match(html,/透明度/);
   assert.match(app,/inspectOfficeImages/);assert.match(app,/transformImage/);assert.match(app,/getImageData/);assert.match(app,/pickWatermarkImage/);assert.match(app,/exportOfficeImages/);
   assert.match(main,/inspect-office-images/);assert.match(main,/export-office-images/);assert.match(preload,/pickImageSourceFiles/);
-  assert.match(css,/\.image-gallery\{/);assert.match(css,/grid-template-columns:repeat\(auto-fill/);assert.doesNotMatch(main,/LibreOffice|soffice/);
+  assert.match(css,/\.image-gallery\{/);assert.match(css,/grid-template-columns:repeat\(auto-fill/);assert.match(css,/grid-auto-rows:max-content/);assert.match(css,/aspect-ratio:4\/3/);assert.match(css,/grid-template-rows:auto auto auto minmax\(0,1fr\)/);assert.doesNotMatch(main,/LibreOffice|soffice/);
   assert.match(html,/id="imagePreviewPane"/);assert.match(html,/id="imageSelectionTray"/);assert.match(html,/id="imageCopyAction"/);
   assert.match(app,/gallery\.onclick=.*galleryClickTimer/);assert.match(app,/gallery\.ondblclick=.*openMediaPreview/);assert.match(app,/gallery\.oncontextmenu/);assert.match(app,/event\.metaKey/);assert.match(app,/copyOfficeImages/);
   assert.match(html,/id="imageGalleryLoad"/);assert.match(html,/id="imagePreviewLoader"/);assert.match(app,/requestIdleCallback/);assert.match(app,/IntersectionObserver/);assert.match(app,/batchSize=24/);
@@ -239,13 +242,13 @@ test('visible product branding uses PreSalesX consistently',()=>{
   assert.doesNotMatch(source,forbidden);
 });
 
-test('application and release artifacts use version 1.3.2 consistently',()=>{
+test('application and release artifacts use version 1.3.3 consistently',()=>{
   const manifest=JSON.parse(read('package.json'));
   const html=read('src/ui/index.html');
   const analyzer=read('src/analyzer.js');
   const workflow=read('.github/workflows/release.yml');
-  assert.equal(manifest.version,'1.3.2');
-  assert.match(html,/PreSalesX 1\.3\.2/);
+  assert.equal(manifest.version,'1.3.3');
+  assert.match(html,/PreSalesX 1\.3\.3/);
   assert.match(analyzer,/appVersion:APP_VERSION/);
   assert.match(manifest.scripts['dist:win'],/--win zip --x64/);
   assert.match(manifest.scripts['dist:mac'],/--mac zip --universal/);
