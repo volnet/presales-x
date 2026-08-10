@@ -1,7 +1,7 @@
 'use strict';
 
 const stage=document.querySelector('#stage');
-const hitbox=document.querySelector('#robotHitbox');
+const interact=document.querySelector('#petInteract');
 const bubble=document.querySelector('#bubble');
 const transitions={
   entrance:{next:'welcome',after:1400},
@@ -12,7 +12,7 @@ const transitions={
   insight:{next:'idle',after:1900},
   dash:{next:'idle',after:760}
 };
-let state='entrance',transitionTimer,idleTimer,bubbleTimer,dragging=false,moved=false,dragOrigin=null,queuedDragPoint=null,dragFrame=0;
+let state='entrance',transitionTimer,idleTimer,bubbleTimer,clickTimer;
 
 function say(text,duration=2800){
   clearTimeout(bubbleTimer);
@@ -49,35 +49,7 @@ function react(kind,message=''){
   else if(kind==='insight')setState('insight',message);
 }
 
-hitbox.addEventListener('pointerdown',event=>{
-  if(event.button!==0)return;
-  event.preventDefault();
-  dragging=true;moved=false;dragOrigin={x:event.screenX,y:event.screenY};
-  try{hitbox.setPointerCapture(event.pointerId);}catch{}
-  hitbox.classList.add('dragging');
-  window.companion.startDrag(dragOrigin);
-});
-hitbox.addEventListener('pointermove',event=>{if(!dragging)return;queuedDragPoint={x:event.screenX,y:event.screenY};moved=true;if(!dragFrame)dragFrame=requestAnimationFrame(()=>{dragFrame=0;if(queuedDragPoint)window.companion.moveDrag(queuedDragPoint);});});
-function stopDrag(event={}){
-  if(!dragging)return;
-  dragging=false;
-  if(dragFrame)cancelAnimationFrame(dragFrame);
-  dragFrame=0;queuedDragPoint=null;dragOrigin=null;
-  if(event.pointerId!==undefined&&hitbox.hasPointerCapture(event.pointerId))hitbox.releasePointerCapture(event.pointerId);
-  hitbox.classList.remove('dragging');
-  window.companion.stopDrag();
-}
-hitbox.addEventListener('pointerup',stopDrag);
-hitbox.addEventListener('pointercancel',stopDrag);
-// Moving a transparent BrowserWindow can make Chromium lose pointer capture
-// even though the mouse button is still held. The main process already tracks
-// the global cursor, so capture loss must not cancel an active drag.
-hitbox.addEventListener('lostpointercapture',()=>{});
-window.addEventListener('pointerup',stopDrag,true);
-window.addEventListener('pointercancel',stopDrag,true);
-hitbox.addEventListener('click',()=>{if(!moved)react('activity','我在，随时可以帮忙。');});
-hitbox.addEventListener('dblclick',event=>{event.preventDefault();if(!moved){setState('dash','马上就来！');setTimeout(()=>window.companion.openMain(),620);}});
-hitbox.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();react('activity');}});
-document.addEventListener('visibilitychange',()=>{if(document.hidden)stopDrag();});
+interact.addEventListener('click',()=>{clearTimeout(clickTimer);clickTimer=setTimeout(()=>react('activity','我在，随时可以帮忙。'),220);});
+interact.addEventListener('dblclick',event=>{event.preventDefault();clearTimeout(clickTimer);setState('dash','马上就来！');setTimeout(()=>window.companion.openMain(),620);});
 window.companion.onMotion(payload=>react(payload.name,payload.message));
 setState('entrance');

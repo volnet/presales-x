@@ -70,7 +70,9 @@ test('watermark workspace and companion are first-class local features',()=>{
   assert.doesNotMatch(main,/titleBarStyle|titleBarOverlay/);
   assert.match(main,/setBackgroundColor\('#00000000'\)/);
   assert.doesNotMatch(main,/setShape|companionShape|nativeImage|useContentSize|setContentSize/);
-  assert.match(read('src/companion/style.css'),/\.robot-hitbox:focus,[^{]*\.robot-hitbox:focus-visible[^{]*\{outline:0/);
+  assert.match(read('src/companion/style.css'),/\.robot-hitbox\{[^}]*-webkit-app-region:drag/);
+  assert.match(read('src/companion/style.css'),/\.pet-interact\{[^}]*-webkit-app-region:no-drag/);
+  assert.match(companionHtml,/id="petInteract"[^>]*aria-label="与柴犬数字宠物互动"/);
   assert.match(read('scripts/after-pack.js'),/--set-icon/);
   assert.match(read('scripts/after-pack.js'),/presalesx-logo\.ico/);
   const companionCss=read('src/companion/style.css');
@@ -88,19 +90,10 @@ test('watermark workspace and companion are first-class local features',()=>{
   assert.match(read('src/preload.js'),/onCompanionVisibility/);
   assert.match(read('src/ui/app.js'),/onCompanionVisibility/);
   assert.match(main,/ipcMain\.on\('companion-show'/);
-  assert.match(companionApp,/startDrag\(dragOrigin\)/);
-  assert.match(companionApp,/moveDrag\(queuedDragPoint\)/);
-  assert.match(read('src/companion-preload.js'),/companion-drag-move/);
-  assert.match(main,/ipcMain\.on\('companion-drag-move'/);
-  assert.match(main,/setInterval\(moveCompanionWithCursor,16\)/);
-  assert.match(main,/screen\.getCursorScreenPoint\(\)/);
-  assert.match(read('src/companion/app.js'),/lostpointercapture/);
-  assert.match(companionApp,/lostpointercapture',\(\)=>\{\}/);
-  assert.match(companionApp,/window\.addEventListener\('pointerup',stopDrag,true\)/);
-  assert.doesNotMatch(companionApp,/lostpointercapture[^\n]*stopDrag/);
-  assert.match(main,/function stopCompanionDrag\(\)/);
-  assert.match(main,/else\{stopCompanionDrag\(\);companion\.hide\(\);\}/);
-  assert.match(main,/getDisplayNearestPoint/);
+  assert.match(companionApp,/interact\.addEventListener\('click'/);
+  assert.match(companionApp,/interact\.addEventListener\('dblclick'/);
+  assert.match(main,/companion\.on\('system-context-menu',[\s\S]*popupCompanionMenu\(\)/);
+  assert.doesNotMatch(`${companionApp}\n${read('src/companion-preload.js')}\n${main}`,/companion-drag-|setPointerCapture|lostpointercapture|moveCompanionWithCursor|companionDragState|companionDragTimer/);
   assert.match(companionCss,/\.bubble\{visibility:hidden/);
   assert.match(companionCss,/\.bubble\.visible\{visibility:visible/);
 });
@@ -243,13 +236,13 @@ test('visible product branding uses PreSalesX consistently',()=>{
   assert.doesNotMatch(source,forbidden);
 });
 
-test('application and release artifacts use version 1.3.4 consistently',()=>{
+test('application and release artifacts use version 1.3.5 consistently',()=>{
   const manifest=JSON.parse(read('package.json'));
   const html=read('src/ui/index.html');
   const analyzer=read('src/analyzer.js');
   const workflow=read('.github/workflows/release.yml');
-  assert.equal(manifest.version,'1.3.4');
-  assert.match(html,/PreSalesX 1\.3\.4/);
+  assert.equal(manifest.version,'1.3.5');
+  assert.match(html,/PreSalesX 1\.3\.5/);
   assert.match(analyzer,/appVersion:APP_VERSION/);
   assert.match(manifest.scripts['dist:win'],/--win zip --x64/);
   assert.match(manifest.scripts['dist:mac'],/--mac zip --universal/);
@@ -311,7 +304,7 @@ test('media assistant separates media downloads from source-file saves',()=>{
   assert.match(html,/image-source-files[\s\S]*id="addImageFiles"/);
   assert.match(app,/saveOfficeMediaSources/);assert.match(main,/save-office-media-sources/);assert.match(preload,/saveOfficeMediaSources/);
   assert.match(css,/\.image-preview-content section>div\{min-width:0;overflow:hidden\}/);
-  assert.match(main,/screen\.getCursorScreenPoint\(\)/);
+  assert.doesNotMatch(main,/moveCompanionWithCursor|companionDragTimer/);
 });
 
 test('media assistant keeps document actions in the header and progress in the editor pane',()=>{

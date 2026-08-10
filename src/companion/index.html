@@ -9,7 +9,7 @@
 <body>
   <main id="stage" data-state="entrance">
     <div id="bubble" class="bubble" aria-live="polite"></div>
-    <div id="robotHitbox" class="robot-hitbox" role="button" tabindex="0" aria-label="柴犬数字宠物">
+    <div id="robotHitbox" class="robot-hitbox" aria-hidden="true">
       <svg id="robot" viewBox="0 0 200 190" aria-hidden="true">
         <defs>
           <linearGradient id="shibaFur" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3a414c"/><stop offset=".42" stop-color="#171c24"/><stop offset="1" stop-color="#070a0f"/></linearGradient>
@@ -45,6 +45,7 @@
         <g class="zzz" fill="#6295e8" font-family="Arial,sans-serif" font-weight="800"><text x="148" y="56" font-size="13">Z</text><text x="161" y="40" font-size="18">Z</text></g>
       </svg>
     </div>
+    <button id="petInteract" class="pet-interact" type="button" aria-label="与柴犬数字宠物互动"></button>
   </main>
   <script src="app.js"></script>
 </body>
