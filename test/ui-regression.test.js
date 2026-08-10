@@ -64,7 +64,8 @@ test('watermark workspace and companion are first-class local features',()=>{
   assert.match(main,/roundedCorners:false/);
   assert.match(main,/focusable:process\.platform==='darwin'/);
   assert.match(main,/type:process\.platform==='darwin'\?'panel':undefined/);
-  assert.match(main,/process\.platform==='darwin'\?'presalesx-logo\.png':'presalesx-logo\.ico'/);
+  assert.match(main,/function createTray\(\)\{if\(process\.platform!==\'win32\'\|\|/);
+  assert.doesNotMatch(main,/process\.platform===\'darwin\'\?\'presalesx-logo\.png\'/);
   assert.match(main,/try\{createTray\(\);\}catch\(error\)[\s\S]*createCompanion\(\)/);
   assert.doesNotMatch(main,/titleBarStyle|titleBarOverlay/);
   assert.match(main,/setBackgroundColor\('#00000000'\)/);
@@ -242,13 +243,13 @@ test('visible product branding uses PreSalesX consistently',()=>{
   assert.doesNotMatch(source,forbidden);
 });
 
-test('application and release artifacts use version 1.3.3 consistently',()=>{
+test('application and release artifacts use version 1.3.4 consistently',()=>{
   const manifest=JSON.parse(read('package.json'));
   const html=read('src/ui/index.html');
   const analyzer=read('src/analyzer.js');
   const workflow=read('.github/workflows/release.yml');
-  assert.equal(manifest.version,'1.3.3');
-  assert.match(html,/PreSalesX 1\.3\.3/);
+  assert.equal(manifest.version,'1.3.4');
+  assert.match(html,/PreSalesX 1\.3\.4/);
   assert.match(analyzer,/appVersion:APP_VERSION/);
   assert.match(manifest.scripts['dist:win'],/--win zip --x64/);
   assert.match(manifest.scripts['dist:mac'],/--mac zip --universal/);

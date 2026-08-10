@@ -36,6 +36,7 @@ test('closing the main window keeps PreSalesX alive in the system tray',()=>{
   const main=read('src/main.js');
   assert.match(main,/\bTray\b/);
   assert.match(main,/new Tray\(/);
+  assert.match(main,/function createTray\(\)\{if\(process\.platform!==\'win32\'\|\|/);
   assert.match(main,/win\.on\('close',event=>\{if\(quitting\|\|process\.env\.PRESALESX_SMOKE==='1'\)return;event\.preventDefault\(\);win\.hide\(\);\}\)/);
   assert.match(main,/tray\.on\('double-click',showMain\)/);
   assert.match(main,/label:'退出 PreSalesX',click:quitApplication/);
