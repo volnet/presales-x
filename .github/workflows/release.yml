@@ -48,6 +48,7 @@ jobs:
             npm run dist:mac
           else
             echo "No Developer ID certificate configured; creating an ad-hoc signed build so Electron notifications remain available."
+            unset CSC_LINK CSC_KEY_PASSWORD APPLE_ID APPLE_APP_SPECIFIC_PASSWORD APPLE_TEAM_ID
             npm run dist:mac -- --config.mac.identity=- --config.mac.hardenedRuntime=false
           fi
       - uses: actions/upload-artifact@v4
