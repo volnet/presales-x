@@ -6,7 +6,7 @@ const path=require('path');
 const actionExtensions={
   compare:new Set(['zip']),
   files:new Set(['docx','docm','xlsx','xlsm','pptx','pptm','pdf','jpg','jpeg','png','tiff','bmp','webp','txt','csv','xml','json','html']),
-  watermark:new Set(['docx','docm','xlsx','xlsm']),
+  watermark:new Set(['docx','docm','xlsx','xlsm','pptx','pptm']),
   images:new Set(['docx','docm','xlsx','xlsm','pptx','pptm'])
 };
 const defaultExtensions=[...new Set(Object.values(actionExtensions).flatMap(set=>[...set]))].sort();

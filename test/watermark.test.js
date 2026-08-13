@@ -5,7 +5,7 @@ const fs=require('node:fs').promises;
 const path=require('node:path');
 const os=require('node:os');
 const yazl=require('yazl');
-const {stripWordWatermarks,stripExcelBackgrounds,stripExcelHeaderWatermarks,inspectSanitizationFile,sanitizeOfficeFile}=require('../src/watermark');
+const {stripWordWatermarks,stripExcelBackgrounds,stripExcelHeaderWatermarks,powerpointWatermarkBlocks,inspectSanitizationFile,sanitizeOfficeFile}=require('../src/watermark');
 
 test('Word header watermark markup is removed without deleting ordinary shapes',()=>{
   const xml='<w:hdr><w:pict><v:shape id="PowerPlusWaterMarkObject1"><v:textpath string="CONFIDENTIAL"/></v:shape></w:pict><w:pict><v:shape id="ordinary"/></w:pict></w:hdr>';
@@ -87,5 +87,14 @@ test('file sanitization lists watermark, comments and revision state before crea
   await fs.rm(directory,{recursive:true,force:true});
 });
 test('PDF is explicitly excluded from file sanitization',async()=>{
-  await assert.rejects(()=>inspectSanitizationFile(path.join(os.tmpdir(),'sample.pdf')),/暂仅支持 Word 和 Excel/);
+  await assert.rejects(()=>inspectSanitizationFile(path.join(os.tmpdir(),'sample.pdf')),/暂仅支持 Word、Excel 和 PowerPoint/);
+});
+
+test('PowerPoint watermarks, comments and metadata are detected and removed',async()=>{
+  const directory=await fs.mkdtemp(path.join(os.tmpdir(),'presalesx-ppt-sanitize-')),source=path.join(directory,'sample.pptx'),destination=path.join(directory,'clean.pptx'),zip=new yazl.ZipFile(),chunks=[];zip.outputStream.on('data',chunk=>chunks.push(chunk));const finished=new Promise((resolve,reject)=>{zip.outputStream.on('end',resolve);zip.outputStream.on('error',reject);});
+  zip.addBuffer(Buffer.from('<p:sld><p:sp><p:nvSpPr><p:cNvPr id="2" name="Watermark Confidential"/></p:nvSpPr><p:txBody><a:p><a:r><a:t>CONFIDENTIAL</a:t></a:r></a:p></p:txBody></p:sp></p:sld>'),'ppt/slides/slide1.xml');
+  zip.addBuffer(Buffer.from('<p:cmLst><p:cm authorId="0" idx="1"><p:text>内部批注</p:text></p:cm></p:cmLst>'),'ppt/comments/comment1.xml');
+  zip.addBuffer(Buffer.from('<cp:coreProperties><dc:creator>Alice</dc:creator></cp:coreProperties>'),'docProps/core.xml');zip.end();await finished;await fs.writeFile(source,Buffer.concat(chunks));
+  const inspection=await inspectSanitizationFile(source),watermark=inspection.items.find(item=>item.type==='watermark'),comment=inspection.items.find(item=>item.type==='comment');assert.equal(inspection.kind,'powerpoint');assert.ok(watermark);assert.ok(comment);assert.equal(powerpointWatermarkBlocks('<p:sp><p:cNvPr name="DRAFT"/></p:sp>').length,1);
+  const result=await sanitizeOfficeFile(source,directory,[watermark.id,comment.id],destination,{metadataUpdates:{author:''}});assert.equal(result.status,'cleaned');const clean=await inspectSanitizationFile(destination);assert.equal(clean.items.filter(item=>item.type==='watermark').length,0);assert.equal(clean.items.filter(item=>item.type==='comment').length,0);assert.equal(clean.items.find(item=>item.field==='author').detail,'');await fs.rm(directory,{recursive:true,force:true});
 });

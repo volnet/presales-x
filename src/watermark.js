@@ -11,7 +11,7 @@ const yazl=require('yazl');
 const execFileAsync=promisify(execFile);
 
 const sha=buffer=>crypto.createHash('sha256').update(buffer).digest('hex');
-const kindOf=filePath=>/\.(?:docx|docm)$/i.test(filePath)?'word':/\.(?:xlsx|xlsm)$/i.test(filePath)?'excel':'unsupported';
+const kindOf=filePath=>/\.(?:docx|docm)$/i.test(filePath)?'word':/\.(?:xlsx|xlsm)$/i.test(filePath)?'excel':/\.(?:pptx|pptm)$/i.test(filePath)?'powerpoint':'unsupported';
 const decode=value=>String(value||'').replace(/<[^>]+>/g,' ').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&apos;/g,"'").replace(/&amp;/g,'&').replace(/\s+/g,' ').trim();
 const attr=(tag,name)=>(tag.match(new RegExp(`\\b${name}="([^"]*)"`,'i'))||[])[1]||'';
 const xmlValue=(xml,tag)=>decode((xml.match(new RegExp(`<${tag}\\b[^>]*>([\\s\\S]*?)<\\/${tag}>`,'i'))||[])[1]||'');
@@ -105,11 +105,20 @@ function excelInspection(entries,sourcePath){
   return {sourcePath,name:path.basename(sourcePath),kind:'excel',hasRevisions:false,revisionCount:0,items};
 }
 
+function powerpointShapeBlocks(xml){return xml.match(/<p:sp\b[\s\S]*?<\/p:sp>|<p:pic\b[\s\S]*?<\/p:pic>/gi)||[];}
+function powerpointWatermarkBlocks(xml){return powerpointShapeBlocks(xml).filter(block=>/watermark|confidential|draft|do not copy|机密|保密|草稿|水印/i.test(block));}
+function powerpointInspection(entries,sourcePath){
+  const items=[...officeMetadataItems(entries)];let watermarkCount=0,commentCount=0;
+  for(const entry of entries.filter(item=>/^ppt\/(?:slides|slideMasters|slideLayouts)\/[^/]+\.xml$/i.test(item.name))){for(const block of powerpointWatermarkBlocks(entry.data.toString('utf8'))){const signature=sha(Buffer.from(block)).slice(0,12),content=decode(block)||'图片或图形水印';items.push({id:`powerpoint-watermark-${signature}`,type:'watermark',part:entry.name,signature,label:`水印 ${++watermarkCount} · ${content.slice(0,60)}`,detail:`${content.slice(0,160)}（${entry.name}）`,selected:false});}}
+  for(const entry of entries.filter(item=>/^ppt\/comments\/comment\d+\.xml$/i.test(item.name))){const slide=Number((entry.name.match(/comment(\d+)/i)||[])[1])||1,xml=entry.data.toString('utf8');for(const block of xml.match(/<(?:p:)?cm\b[\s\S]*?<\/(?:p:)?cm>/gi)||[]){const open=(block.match(/<(?:p:)?cm\b[^>]*>/i)||[])[0]||'',id=attr(open,'idx')||String(commentCount);items.push({id:`powerpoint-comment-${slide}-${id}`,type:'comment',part:entry.name,commentId:id,page:slide,label:`第 ${slide} 页 · 批注 ${++commentCount}`,detail:decode(block)||'<空>',selected:false});}}
+  return{sourcePath,name:path.basename(sourcePath),kind:'powerpoint',hasRevisions:false,revisionCount:0,items};
+}
+
 async function inspectSanitizationFile(sourcePath){
-  const kind=kindOf(sourcePath);if(kind==='unsupported')throw new Error('文件脱敏暂仅支持 Word 和 Excel');
+  const kind=kindOf(sourcePath);if(kind==='unsupported')throw new Error('文件脱敏暂仅支持 Word、Excel 和 PowerPoint');
   const stat=await fsp.stat(sourcePath),buffer=await fsp.readFile(sourcePath);
   if(process.platform==='win32')await fsp.utimes(sourcePath,stat.atime,stat.mtime);
-  const entries=await readArchive(buffer),inspection=kind==='word'?wordInspection(entries,sourcePath):excelInspection(entries,sourcePath);
+  const entries=await readArchive(buffer),inspection=kind==='word'?wordInspection(entries,sourcePath):kind==='excel'?excelInspection(entries,sourcePath):powerpointInspection(entries,sourcePath);
   inspection.items.push(
     {id:'filesystem-created',type:'filesystem',field:'created',label:'创建日期',detail:stat.birthtime.toISOString(),originalValue:stat.birthtime.toISOString(),value:stat.birthtime.toISOString()},
     {id:'filesystem-modified',type:'filesystem',field:'modified',label:'修改日期',detail:stat.mtime.toISOString(),originalValue:stat.mtime.toISOString(),value:stat.mtime.toISOString()},
@@ -148,6 +157,7 @@ async function sanitizeOfficeFile(sourcePath,directory,selectedIds,destinationOv
     if(inspection.kind==='word'&&/^word\/header\d*\.xml$/i.test(entry.name)){const selectedSignatures=new Set(inspection.items.filter(value=>value.type==='watermark'&&value.part===entry.name&&selected.has(value.id)).map(value=>value.signature));if(selectedSignatures.size){let count=0;for(const block of wordWatermarkBlocks(xml)){const signature=sha(Buffer.from(block)).slice(0,12);if(selectedSignatures.has(signature)){xml=xml.replace(block,'');count++;}}removed+=count;changed=count>0;}}
     if(inspection.kind==='word'&&/^word\/.*\.xml$/i.test(entry.name)){for(const item of inspection.items.filter(value=>value.type==='comment'&&selected.has(value.id))){const next=removeWordComment(xml,item.commentId,/^word\/comments(?:\d+)?\.xml$/i.test(entry.name));if(next!==xml){xml=next;removed++;changed=true;}}}
     if(inspection.kind==='excel'){for(const item of inspection.items.filter(value=>selected.has(value.id)&&value.part===entry.name)){if(item.type==='watermark'){const result=item.subtype==='header'?stripExcelHeaderWatermarks(xml):stripExcelBackgrounds(xml);xml=result.xml;removed+=result.removed;changed=!!result.removed||changed;}else if(item.type==='comment'){const next=xml.replace(new RegExp(`<comment\\b(?=[^>]*\\bref="${item.ref}")[\\s\\S]*?<\\/comment>`,'gi'),'');if(next!==xml){xml=next;removed++;changed=true;}}}}
+    if(inspection.kind==='powerpoint'){for(const item of inspection.items.filter(value=>selected.has(value.id)&&value.part===entry.name)){if(item.type==='watermark'){for(const block of powerpointWatermarkBlocks(xml)){if(sha(Buffer.from(block)).slice(0,12)===item.signature){xml=xml.replace(block,'');removed++;changed=true;}}}else if(item.type==='comment'){const next=xml.replace(new RegExp(`<(?:p:)?cm\\b(?=[^>]*\\bidx="${item.commentId}")[\\s\\S]*?<\\/(?:p:)?cm>`,'gi'),'');if(next!==xml){xml=next;removed++;changed=true;}}}}
     for(const item of inspection.items.filter(value=>value.type==='metadata'&&value.part===entry.name&&Object.prototype.hasOwnProperty.call(metadataUpdates,value.field))){const next=setXmlTag(xml,item.tag,String(metadataUpdates[item.field]??''));if(next!==xml){xml=next;modified++;changed=true;}}
     if(changed)entry.data=Buffer.from(xml);
   }
@@ -172,4 +182,4 @@ async function rewriteOffice(buffer,kind){
   const entries=await readArchive(buffer);let removed=0;for(const entry of entries){if(!entry.data)continue;if(kind==='word'&&/^word\/header\d*\.xml$/i.test(entry.name)){const result=stripWordWatermarks(entry.data.toString('utf8'));entry.data=Buffer.from(result.xml);removed+=result.removed;}if(kind==='excel'&&/^xl\/worksheets\/sheet\d+\.xml$/i.test(entry.name)){const result=stripExcelBackgrounds(entry.data.toString('utf8'));entry.data=Buffer.from(result.xml);removed+=result.removed;}}return {buffer:await writeArchive(entries),removed};
 }
 
-module.exports={kindOf,stripWordWatermarks,stripExcelBackgrounds,stripExcelHeaderWatermarks,rewriteOffice,inspectSanitizationFile,inspectSanitizationFiles,sanitizeOfficeFile};
+module.exports={kindOf,stripWordWatermarks,stripExcelBackgrounds,stripExcelHeaderWatermarks,powerpointWatermarkBlocks,rewriteOffice,inspectSanitizationFile,inspectSanitizationFiles,sanitizeOfficeFile};

@@ -3,6 +3,7 @@
 const stage=document.querySelector('#stage');
 const interact=document.querySelector('#petInteract');
 const bubble=document.querySelector('#bubble');
+document.body.dataset.platform=window.companion.platform;
 const transitions={
   entrance:{next:'welcome',after:1400},
   welcome:{next:'idle',after:3300},
@@ -47,9 +48,12 @@ function react(kind,message=''){
   }
   if(kind==='think')setState(state==='sleep'?'wake':'think',message);
   else if(kind==='insight')setState('insight',message);
+  else if(kind==='dash')setState('dash',message);
 }
 
-interact.addEventListener('click',()=>{clearTimeout(clickTimer);clickTimer=setTimeout(()=>react('activity','我在，随时可以帮忙。'),220);});
-interact.addEventListener('dblclick',event=>{event.preventDefault();clearTimeout(clickTimer);setState('dash','马上就来！');setTimeout(()=>window.companion.openMain(),620);});
+if(window.companion.platform!=='win32'){
+  interact.addEventListener('click',()=>{clearTimeout(clickTimer);clickTimer=setTimeout(()=>react('activity','我在，随时可以帮忙。'),220);});
+  interact.addEventListener('dblclick',event=>{event.preventDefault();clearTimeout(clickTimer);setState('dash','马上就来！');setTimeout(()=>window.companion.openMain(),620);});
+}
 window.companion.onMotion(payload=>react(payload.name,payload.message));
 setState('entrance');

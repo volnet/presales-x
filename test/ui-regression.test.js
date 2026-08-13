@@ -70,9 +70,13 @@ test('watermark workspace and companion are first-class local features',()=>{
   assert.doesNotMatch(main,/titleBarStyle|titleBarOverlay/);
   assert.match(main,/setBackgroundColor\('#00000000'\)/);
   assert.doesNotMatch(main,/setShape|companionShape|nativeImage|useContentSize|setContentSize/);
-  assert.match(read('src/companion/style.css'),/\.robot-hitbox\{[^}]*-webkit-app-region:drag/);
+  assert.match(read('src/companion/style.css'),/\.pet-drag-surface\{[^}]*-webkit-app-region:drag/);
+  assert.match(companionHtml,/class="pet-drag-surface"/);
+  assert.match(main,/companionVisibleRequested=true/);assert.match(main,/ready-to-show/);
   assert.match(read('src/companion/style.css'),/\.pet-interact\{[^}]*-webkit-app-region:no-drag/);
-  assert.match(companionHtml,/id="petInteract"[^>]*aria-label="与柴犬数字宠物互动"/);
+  assert.match(read('src/companion/style.css'),/body\[data-platform="win32"\] \.pet-interact\{display:none\}/);
+  assert.doesNotMatch(read('src/companion/style.css'),/\.pet-interact:focus-visible\{box-shadow:0 0 0/);
+  assert.match(companionHtml,/id="petInteract"[^>]*tabindex="-1"[^>]*aria-label="与柴犬数字宠物互动"/);
   assert.match(read('scripts/after-pack.js'),/--set-icon/);
   assert.match(read('scripts/after-pack.js'),/presalesx-logo\.ico/);
   const companionCss=read('src/companion/style.css');
@@ -90,6 +94,13 @@ test('watermark workspace and companion are first-class local features',()=>{
   assert.match(read('src/preload.js'),/onCompanionVisibility/);
   assert.match(read('src/ui/app.js'),/onCompanionVisibility/);
   assert.match(main,/ipcMain\.on\('companion-show'/);
+  assert.match(read('src/companion-preload.js'),/platform:process\.platform/);
+  assert.match(companionApp,/document\.body\.dataset\.platform=window\.companion\.platform/);
+  assert.match(companionApp,/if\(window\.companion\.platform!==\'win32\'\)/);
+  assert.match(main,/function setupCompanionNativeInteractions\(\)/);
+  assert.match(main,/hookWindowMessage\(WM_NCLBUTTONDOWN/);
+  assert.match(main,/hookWindowMessage\(WM_NCLBUTTONDBLCLK/);
+  assert.match(main,/companionMotion\('dash'/);
   assert.match(companionApp,/interact\.addEventListener\('click'/);
   assert.match(companionApp,/interact\.addEventListener\('dblclick'/);
   assert.match(main,/companion\.on\('system-context-menu',[\s\S]*popupCompanionMenu\(\)/);
@@ -106,8 +117,9 @@ test('document media assistant supports selection, editing, preview and export',
   assert.match(main,/inspect-office-images/);assert.match(main,/export-office-images/);assert.match(preload,/pickImageSourceFiles/);
   assert.match(css,/\.image-gallery\{/);assert.match(css,/grid-template-columns:repeat\(auto-fill/);assert.match(css,/grid-auto-rows:max-content/);assert.match(css,/aspect-ratio:4\/3/);assert.match(css,/grid-template-rows:auto auto auto minmax\(0,1fr\)/);assert.doesNotMatch(main,/LibreOffice|soffice/);
   assert.match(html,/id="imagePreviewPane"/);assert.match(html,/id="imageSelectionTray"/);assert.match(html,/id="imageCopyAction"/);
-  assert.match(app,/gallery\.onclick=.*galleryClickTimer/);assert.match(app,/gallery\.ondblclick=.*openMediaPreview/);assert.match(app,/gallery\.oncontextmenu/);assert.match(app,/event\.metaKey/);assert.match(app,/copyOfficeImages/);
-  assert.match(html,/id="imageGalleryLoad"/);assert.match(html,/id="imagePreviewLoader"/);assert.match(app,/requestIdleCallback/);assert.match(app,/IntersectionObserver/);assert.match(app,/batchSize=24/);
+  assert.match(app,/gallery\.onclick=.*galleryClickTimer/);assert.match(app,/gallery\.ondblclick=.*selectOnlyMedia\(target\).*openMediaPreview/);assert.match(app,/gallery\.oncontextmenu/);assert.match(app,/event\.metaKey/);assert.match(app,/copyOfficeImages/);
+  assert.match(app,/action==='save-as'.*exportSelectedMedia\(false\)/);assert.doesNotMatch(app,/exportSelectedMedia\(['"]saveAs['"]\)/);
+  assert.match(html,/id="imageGalleryLoad"/);assert.match(html,/id="imagePreviewLoader"/);assert.match(app,/requestIdleCallback/);assert.match(app,/IntersectionObserver/);assert.match(app,/batchSize=12/);assert.match(app,/ensureOfficeMedia/);assert.match(preload,/loadOfficeMedia/);
   assert.match(app,/updateCurrentGallerySelectionState\(\);updateImageActionState\(\)/);assert.match(app,/extensionLabel\(source\)/);assert.match(app,/extensionLabel\(file\)/);
   assert.match(html,/id="toggleSanitizeFiles"/);assert.match(html,/id="toggleImageFiles"/);assert.match(css,/files-collapsed/);
   assert.match(main,/copy-office-images/);assert.match(read('src/image-clipboard.js'),/clipboard\.write/);
@@ -236,13 +248,13 @@ test('visible product branding uses PreSalesX consistently',()=>{
   assert.doesNotMatch(source,forbidden);
 });
 
-test('application and release artifacts use version 1.3.5 consistently',()=>{
+test('application and release artifacts use version 1.3.6 consistently',()=>{
   const manifest=JSON.parse(read('package.json'));
   const html=read('src/ui/index.html');
   const analyzer=read('src/analyzer.js');
   const workflow=read('.github/workflows/release.yml');
-  assert.equal(manifest.version,'1.3.5');
-  assert.match(html,/PreSalesX 1\.3\.5/);
+  assert.equal(manifest.version,'1.3.6');
+  assert.match(html,/PreSalesX 1\.3\.6/);
   assert.match(analyzer,/appVersion:APP_VERSION/);
   assert.match(manifest.scripts['dist:win'],/--win zip --x64/);
   assert.match(manifest.scripts['dist:mac'],/--mac zip --universal/);
@@ -305,6 +317,11 @@ test('media assistant separates media downloads from source-file saves',()=>{
   assert.match(app,/saveOfficeMediaSources/);assert.match(main,/save-office-media-sources/);assert.match(preload,/saveOfficeMediaSources/);
   assert.match(css,/\.image-preview-content section>div\{min-width:0;overflow:hidden\}/);
   assert.doesNotMatch(main,/moveCompanionWithCursor|companionDragTimer/);
+});
+
+test('PowerPoint sanitization and page-image Excel export are first-class features',()=>{
+  const html=read('src/ui/index.html'),app=read('src/ui/app.js'),main=read('src/main.js'),preload=read('src/preload.js'),sanitizer=read('src/watermark.js'),pages=read('src/ppt-pages.js');
+  assert.match(html,/data-mode="slides"/);assert.match(html,/id="slidesWorkspace"/);assert.match(html,/id="exportPptExcel"/);assert.match(app,/renderPptPages/);assert.match(app,/exportPptPages/);assert.match(main,/render-ppt-pages/);assert.match(main,/export-ppt-pages/);assert.match(preload,/pickPptFile/);assert.match(sanitizer,/powerpointWatermarkBlocks/);assert.match(pages,/workbook\.addImage/);assert.match(pages,/sheet\.addImage/);assert.match(pages,/PowerPoint\.Application/);assert.match(pages,/tell application "Keynote"/);
 });
 
 test('media assistant keeps document actions in the header and progress in the editor pane',()=>{

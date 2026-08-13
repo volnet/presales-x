@@ -9,7 +9,7 @@ const run=promisify(execFile);
 const actions={
   compare:{label:'加入供应商审查',extensions:['zip']},
   files:{label:'打开文件属性编辑器',extensions:['docx','docm','xlsx','xlsm','pptx','pptm','pdf','jpg','jpeg','png','tiff','bmp','webp','txt','csv','xml','json','html']},
-  watermark:{label:'打开文件脱敏',extensions:['docx','docm','xlsx','xlsm']},
+  watermark:{label:'打开文件脱敏',extensions:['docx','docm','xlsx','xlsm','pptx','pptm']},
   images:{label:'打开文档媒体助理',extensions:['docx','docm','xlsx','xlsm','pptx','pptm']}
 };
 const allExtensions=[...new Set(Object.values(actions).flatMap(action=>action.extensions))];

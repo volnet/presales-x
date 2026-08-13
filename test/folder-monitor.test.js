@@ -9,7 +9,7 @@ const {supportedActions,defaultExtensions,extensionOf,waitForStableFile,FolderMo
 test('folder monitor classifies supported files for nearby actions',()=>{
   assert.deepEqual(supportedActions('supplier.zip'),['compare']);
   assert.deepEqual(supportedActions('proposal.docx'),['files','watermark','images']);
-  assert.deepEqual(supportedActions('deck.pptx'),['files','images']);
+  assert.deepEqual(supportedActions('deck.pptx'),['files','watermark','images']);
   assert.deepEqual(supportedActions('contract.pdf'),['files']);
   assert.deepEqual(supportedActions('ignored.exe'),[]);
   assert.equal(extensionOf('Example.XLSX'),'xlsx');

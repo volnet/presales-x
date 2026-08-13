@@ -33,8 +33,9 @@
         <div class="workspace-cards">
           <button class="workspace-card active" data-mode="compare"><span class="card-icon">⌘</span><strong>多家供应商批量审查</strong><p>每个 ZIP 代表一家供应商，检查文件一致性、作者与关键元数据关联。</p><em>至少 2 个 ZIP</em></button>
           <button class="workspace-card" data-mode="files"><span class="card-icon">▤</span><strong>文件属性编辑器</strong><p>打开 Office、PDF、图片或文本文件，查看、修改和清理可编辑属性。</p><em>支持多选文件</em></button>
-          <button class="workspace-card" data-mode="watermark"><span class="card-icon">◇</span><strong>文件脱敏</strong><p>逐项检查并清理 Word、Excel 中的水印、工作表背景、批注和关键属性。</p><em>逐项选择 · 保存或另存为</em></button>
+          <button class="workspace-card" data-mode="watermark"><span class="card-icon">◇</span><strong>文件脱敏</strong><p>逐项检查并清理 Word、Excel、PowerPoint 中的水印、背景、批注和关键属性。</p><em>逐项选择 · 保存或另存为</em></button>
           <button class="workspace-card" data-mode="images"><span class="card-icon">▧</span><strong>文档媒体助理</strong><p>从 Word、Excel、PowerPoint 中快速提取内置图片和视频，像相册一样预览与多选。</p><em>提取 · 预览 · 图片处理</em></button>
+          <button class="workspace-card" data-mode="slides"><span class="card-icon">▥</span><strong>PPT 页面导出</strong><p>将 PowerPoint 逐页渲染为图片，可打包下载或嵌入 Excel，每行一页。</p><em>逐页图片 · Excel</em></button>
         </div>
         <div id="drop" class="drop-zone"><span class="drop-symbol">＋</span><div><strong id="dropTitle">添加供应商 ZIP</strong><p id="dropHint">ZIP 文件名将作为供应商名称</p></div><button type="button" class="primary">选择文件</button></div>
         <div id="chosen" class="chosen-list"></div>
@@ -118,10 +119,14 @@
           <div class="image-effect-actions"><button id="cancelVideoCompression">取消</button><button id="runVideoCompression" class="primary">开始压缩</button></div>
         </aside>
       </section>
+      <section id="slidesWorkspace" class="workspace-view" hidden>
+        <div class="workspace-header"><div><span class="overline">PRESENTATION EXPORT</span><h1>PPT 页面导出</h1><p id="pptPagesSummary">每一页生成一张图片。</p></div><div class="command-bar"><button class="backHome">返回</button><button id="exportPptImages">打包下载图片</button><button id="exportPptExcel" class="primary">导出 Excel</button></div></div>
+        <div id="pptPagesGallery" class="ppt-pages-gallery"></div>
+      </section>
     </main>
     <div id="monitorToastStack" class="monitor-toast-stack" aria-live="polite"></div>
     <aside id="propertyDrawer" class="property-drawer" hidden><div class="drawer-head"><div><span>属性编辑器</span><strong id="drawerContext"></strong></div><button id="closeDrawer" aria-label="关闭">×</button></div><section id="drawerDetail" class="drawer-body"></section></aside>
-    <footer class="statusbar"><span><i></i> 本地模式</span><span id="statusText">就绪</span><span>PreSalesX 1.3.5</span></footer>
+    <footer class="statusbar"><span><i></i> 本地模式</span><span id="statusText">就绪</span><span>PreSalesX 1.3.6</span></footer>
   </div>
   <script src="app.js"></script>
 </body>
