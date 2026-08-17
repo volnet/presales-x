@@ -13,19 +13,28 @@ const transitions={
   insight:{next:'idle',after:1900},
   dash:{next:'idle',after:760}
 };
-let state='entrance',transitionTimer,idleTimer,bubbleTimer,clickTimer;
+let state='entrance',transitionTimer,idleTimer,bubbleTimer,bubbleHideTimer,clickTimer,pointerGesture,lastTap=null;
+
+function hideBubble(){
+  clearTimeout(bubbleHideTimer);
+  bubble.classList.remove('visible');
+  bubble.classList.add('leaving');
+  bubbleHideTimer=setTimeout(()=>{bubble.hidden=true;bubble.classList.remove('leaving');},160);
+}
 
 function say(text,duration=2800){
   clearTimeout(bubbleTimer);
-  bubble.classList.remove('visible');
-  if(!text)return;
+  clearTimeout(bubbleHideTimer);
+  if(!text){hideBubble();return;}
   bubble.textContent=text;
+  bubble.hidden=false;
+  bubble.classList.remove('leaving','visible');
   requestAnimationFrame(()=>bubble.classList.add('visible'));
-  bubbleTimer=setTimeout(()=>bubble.classList.remove('visible'),duration);
+  bubbleTimer=setTimeout(hideBubble,duration);
 }
 function scheduleSleep(delay=18000){
   clearTimeout(idleTimer);
-  idleTimer=setTimeout(()=>setState('sleep'),delay);
+  idleTimer=setTimeout(()=>{setState('sleep');window.companion.ensureInteractive();},delay);
 }
 function setState(next,message=''){
   clearTimeout(transitionTimer);
@@ -51,9 +60,47 @@ function react(kind,message=''){
   else if(kind==='dash')setState('dash',message);
 }
 
-if(window.companion.platform!=='win32'){
-  interact.addEventListener('click',()=>{clearTimeout(clickTimer);clickTimer=setTimeout(()=>react('activity','我在，随时可以帮忙。'),220);});
-  interact.addEventListener('dblclick',event=>{event.preventDefault();clearTimeout(clickTimer);setState('dash','马上就来！');setTimeout(()=>window.companion.openMain(),620);});
+interact.addEventListener('pointerdown',event=>{
+  if(event.button!==0||!event.isPrimary)return;
+  event.preventDefault();
+  if(pointerGesture)window.companion.dragEnd();
+  pointerGesture={id:event.pointerId,startX:event.screenX,startY:event.screenY,moved:false};
+  try{interact.setPointerCapture(event.pointerId);}catch{}
+  window.companion.dragStart({x:event.screenX,y:event.screenY});
+});
+interact.addEventListener('pointermove',event=>{
+  if(!pointerGesture||pointerGesture.id!==event.pointerId)return;
+  if(event.buttons===0){cancelPointer(event.pointerId);return;}
+  const distance=Math.hypot(event.screenX-pointerGesture.startX,event.screenY-pointerGesture.startY);
+  if(distance>4)pointerGesture.moved=true;
+  if(pointerGesture.moved)window.companion.dragMove({x:event.screenX,y:event.screenY});
+});
+function finishPointer(event){
+  if(!pointerGesture||pointerGesture.id!==event.pointerId)return;
+  const gesture=pointerGesture;
+  pointerGesture=null;
+  try{if(interact.hasPointerCapture(event.pointerId))interact.releasePointerCapture(event.pointerId);}catch{}
+  window.companion.dragEnd();
+  if(gesture.moved){lastTap=null;clearTimeout(clickTimer);return;}
+  const now=Date.now(),isDouble=lastTap&&now-lastTap.time<460&&Math.hypot(event.screenX-lastTap.x,event.screenY-lastTap.y)<18;
+  if(isDouble){lastTap=null;clearTimeout(clickTimer);setState('dash','马上就来！');window.companion.openMain();}
+  else{lastTap={time:now,x:event.screenX,y:event.screenY};clearTimeout(clickTimer);clickTimer=setTimeout(()=>{lastTap=null;react('activity','我在，随时可以帮忙。');},470);}
 }
+function cancelPointer(pointerId){
+  if(!pointerGesture||(pointerId!==undefined&&pointerGesture.id!==pointerId))return;
+  const activeId=pointerGesture.id;
+  pointerGesture=null;
+  lastTap=null;
+  clearTimeout(clickTimer);
+  try{if(interact.hasPointerCapture(activeId))interact.releasePointerCapture(activeId);}catch{}
+  window.companion.dragEnd();
+}
+document.addEventListener('pointerup',finishPointer,true);
+document.addEventListener('pointercancel',event=>cancelPointer(event.pointerId),true);
+interact.addEventListener('lostpointercapture',event=>{if(window.companion.platform!=='win32')cancelPointer(event.pointerId);});
+window.addEventListener('blur',()=>{if(window.companion.platform!=='win32')cancelPointer();});
+document.addEventListener('visibilitychange',()=>{if(document.hidden)cancelPointer();});
+window.addEventListener('pageshow',()=>window.companion.ensureInteractive());
+setInterval(()=>window.companion.ensureInteractive(),5000);
 window.companion.onMotion(payload=>react(payload.name,payload.message));
 setState('entrance');

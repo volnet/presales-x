@@ -47,9 +47,12 @@ test('closing the main window keeps PreSalesX alive in the system tray',()=>{
 
 test('clicking a system notification restores the existing alert without duplicating it',()=>{
   const app=read('src/ui/app.js');
-  assert.match(app,/monitorNotificationApi\.onOpen\(item=>\{setStatus/);
-  assert.doesNotMatch(app,/monitorNotificationApi\.onOpen\(item=>\{showMonitorToast/);
+  assert.match(app,/monitorNotificationApi\.onOpen\(item=>\{showMonitorToast\(item\);setStatus/);
+  assert.match(app,/function monitorToastKey\(item\)/);
+  assert.match(app,/existing=\[\.\.\.stack\.children\]\.find/);
 });
+
+test('system notifications retain an in-app quick action card',()=>{const app=read('src/ui/app.js');assert.match(app,/item\.notification==='popup'\|\|item\.notification==='system'/);assert.match(app,/setTimeout\(\(\)=>toast\.remove\(\),30000\)/);});
 
 test('configuration exposes cross-platform context-menu controls',()=>{
   const app=read('src/ui/app.js'),css=read('src/ui/monitor.css');

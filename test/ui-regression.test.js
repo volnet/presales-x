@@ -61,20 +61,19 @@ test('watermark workspace and companion are first-class local features',()=>{
   for(const state of ['entrance','sleep','wake','think','insight','dash'])assert.match(companionApp,new RegExp(`['"]${state}['"]`));
   assert.doesNotMatch(companionApp,/Math\.random|\.png/);
   assert.match(main,/const width=220,height=220/);
-  assert.match(main,/roundedCorners:false/);
-  assert.match(main,/focusable:process\.platform==='darwin'/);
-  assert.match(main,/type:process\.platform==='darwin'\?'panel':undefined/);
+  assert.match(main,/titleBarStyle:'hidden',titleBarOverlay:false/);
+  assert.match(main,/focusable:true,acceptFirstMouse:true/);
+  assert.match(main,/type:process\.platform==='darwin'\?'panel':'toolbar'/);
   assert.match(main,/function createTray\(\)\{if\(process\.platform!==\'win32\'\|\|/);
   assert.doesNotMatch(main,/process\.platform===\'darwin\'\?\'presalesx-logo\.png\'/);
   assert.match(main,/try\{createTray\(\);\}catch\(error\)[\s\S]*createCompanion\(\)/);
-  assert.doesNotMatch(main,/titleBarStyle|titleBarOverlay/);
   assert.match(main,/setBackgroundColor\('#00000000'\)/);
-  assert.doesNotMatch(main,/setShape|companionShape|nativeImage|useContentSize|setContentSize/);
-  assert.match(read('src/companion/style.css'),/\.pet-drag-surface\{[^}]*-webkit-app-region:drag/);
-  assert.match(companionHtml,/class="pet-drag-surface"/);
+  assert.doesNotMatch(main,/companionShape|nativeImage|useContentSize|setContentSize/);
+  assert.match(read('src/companion/style.css'),/\.robot-hitbox\{z-index:1;pointer-events:none;-webkit-app-region:no-drag\}/);
+  assert.doesNotMatch(companionHtml,/class="pet-drag-surface"/);
   assert.match(main,/companionVisibleRequested=true/);assert.match(main,/ready-to-show/);
   assert.match(read('src/companion/style.css'),/\.pet-interact\{[^}]*-webkit-app-region:no-drag/);
-  assert.match(read('src/companion/style.css'),/body\[data-platform="win32"\] \.pet-interact\{display:none\}/);
+  assert.match(read('src/companion/style.css'),/\.pet-interact\{[^}]*display:block!important[^}]*-webkit-app-region:no-drag\}/);
   assert.doesNotMatch(read('src/companion/style.css'),/\.pet-interact:focus-visible\{box-shadow:0 0 0/);
   assert.match(companionHtml,/id="petInteract"[^>]*tabindex="-1"[^>]*aria-label="与柴犬数字宠物互动"/);
   assert.match(read('scripts/after-pack.js'),/--set-icon/);
@@ -96,15 +95,21 @@ test('watermark workspace and companion are first-class local features',()=>{
   assert.match(main,/ipcMain\.on\('companion-show'/);
   assert.match(read('src/companion-preload.js'),/platform:process\.platform/);
   assert.match(companionApp,/document\.body\.dataset\.platform=window\.companion\.platform/);
-  assert.match(companionApp,/if\(window\.companion\.platform!==\'win32\'\)/);
-  assert.match(main,/function setupCompanionNativeInteractions\(\)/);
-  assert.match(main,/hookWindowMessage\(WM_NCLBUTTONDOWN/);
-  assert.match(main,/hookWindowMessage\(WM_NCLBUTTONDBLCLK/);
-  assert.match(main,/companionMotion\('dash'/);
-  assert.match(companionApp,/interact\.addEventListener\('click'/);
-  assert.match(companionApp,/interact\.addEventListener\('dblclick'/);
-  assert.match(main,/companion\.on\('system-context-menu',[\s\S]*popupCompanionMenu\(\)/);
-  assert.doesNotMatch(`${companionApp}\n${read('src/companion-preload.js')}\n${main}`,/companion-drag-|setPointerCapture|lostpointercapture|moveCompanionWithCursor|companionDragState|companionDragTimer/);
+  assert.doesNotMatch(companionApp,/if\(window\.companion\.platform!==\'win32\'\)\{\s*interact\.addEventListener\('pointerdown'/);
+  assert.match(main,/function setupCompanionWindowsDragSafety\(petWindow\)/);
+  assert.match(main,/hookWindowMessage\(WM_LBUTTONUP/);
+  assert.match(main,/hookWindowMessage\(WM_CANCELMODE/);
+  assert.match(companionApp,/interact\.addEventListener\('pointerdown'/);
+  assert.match(companionApp,/interact\.addEventListener\('pointermove'/);
+  assert.match(companionApp,/document\.addEventListener\('pointerup',finishPointer,true\)/);
+  assert.match(companionApp,/isDouble=lastTap/);
+  assert.match(companionApp,/setState\('dash','马上就来！'\);window\.companion\.openMain\(\)/);
+  assert.match(main,/ipcMain\.on\('companion-drag-start'/);
+  assert.match(main,/ipcMain\.on\('companion-drag-move'/);
+  assert.match(companionCss,/\.pet-interact\{[^}]*width:178px/);
+  assert.match(main,/petWindow\.on\('system-context-menu',[\s\S]*popupCompanionMenu\(\)/);
+  assert.match(main,/companionDragTimer=setInterval/);
+  assert.match(main,/function stopCompanionDrag\(\)/);
   assert.match(companionCss,/\.bubble\{visibility:hidden/);
   assert.match(companionCss,/\.bubble\.visible\{visibility:visible/);
 });
@@ -248,13 +253,13 @@ test('visible product branding uses PreSalesX consistently',()=>{
   assert.doesNotMatch(source,forbidden);
 });
 
-test('application and release artifacts use version 1.3.6 consistently',()=>{
+test('application and release artifacts use version 1.3.7 consistently',()=>{
   const manifest=JSON.parse(read('package.json'));
   const html=read('src/ui/index.html');
   const analyzer=read('src/analyzer.js');
   const workflow=read('.github/workflows/release.yml');
-  assert.equal(manifest.version,'1.3.6');
-  assert.match(html,/PreSalesX 1\.3\.6/);
+  assert.equal(manifest.version,'1.3.7');
+  assert.match(html,/PreSalesX 1\.3\.7/);
   assert.match(analyzer,/appVersion:APP_VERSION/);
   assert.match(manifest.scripts['dist:win'],/--win zip --x64/);
   assert.match(manifest.scripts['dist:mac'],/--mac zip --universal/);
@@ -301,7 +306,7 @@ test('sanitization file list clears cleanly and watermark rows explain their con
 
 test('closing the main window hides it while explicit tray exit closes the companion',()=>{
   const main=read('src/main.js');
-  assert.match(main,/if\(win\.isMinimized\(\)\)win\.restore\(\);win\.show\(\);win\.setSkipTaskbar\(false\);win\.focus\(\);win\.moveTop\(\)/);
+  assert.match(main,/if\(win\.isMinimized\(\)\)win\.restore\(\);win\.show\(\);win\.setSkipTaskbar\(false\);[\s\S]*win\.focus\(\);win\.moveTop\(\)/);
   assert.match(main,/event\.preventDefault\(\);win\.hide\(\)/);
   assert.match(main,/function quitApplication\(\)\{quitting=true;[^}]*companion\.destroy\(\);app\.quit\(\);\}/);
   assert.doesNotMatch(main,/win\.show\(\);win\.restore\(\);win\.focus\(\)/);
@@ -316,8 +321,20 @@ test('media assistant separates media downloads from source-file saves',()=>{
   assert.match(html,/image-source-files[\s\S]*id="addImageFiles"/);
   assert.match(app,/saveOfficeMediaSources/);assert.match(main,/save-office-media-sources/);assert.match(preload,/saveOfficeMediaSources/);
   assert.match(css,/\.image-preview-content section>div\{min-width:0;overflow:hidden\}/);
-  assert.doesNotMatch(main,/moveCompanionWithCursor|companionDragTimer/);
+  assert.match(main,/save-office-media-sources/);
 });
+
+test('cross-platform pet gestures reliably separate full-body dragging from double-click window restore',()=>{const main=read('src/main.js'),app=read('src/companion/app.js'),preload=read('src/companion-preload.js'),css=read('src/companion/style.css');assert.match(main,/process\.platform==='darwin'\)app\.show\(\)/);assert.match(main,/app\.focus\(\{steal:true\}\)/);assert.match(app,/const distance=Math\.hypot/);assert.match(app,/if\(distance>4\)/);assert.match(app,/now-lastTap\.time<460/);assert.match(app,/window\.companion\.openMain\(\)/);assert.match(preload,/dragStart:point=>ipcRenderer\.send\('companion-drag-start'/);assert.doesNotMatch(main,/companion-drag-start',[^\n]*process\.platform/);assert.match(css,/\.robot-hitbox\{z-index:1;pointer-events:none;-webkit-app-region:no-drag/);});
+
+test('Windows pet uses a borderless toolbar window and repeatable pointer dragging',()=>{const main=read('src/main.js'),css=read('src/companion/style.css'),script=read('src/companion/app.js'),preload=read('src/companion-preload.js');assert.match(main,/frame:false,titleBarStyle:'hidden',titleBarOverlay:false/);assert.match(main,/focusable:true,acceptFirstMouse:true/);assert.match(main,/type:process\.platform==='darwin'\?'panel':'toolbar'/);assert.match(css,/\.pet-interact\{[^}]*display:block!important[^}]*-webkit-app-region:no-drag\}/);assert.match(script,/document\.addEventListener\('pointerup',finishPointer,true\)/);assert.match(script,/setInterval\(\(\)=>window\.companion\.ensureInteractive\(\),5000\)/);assert.match(preload,/ensureInteractive:\(\)=>ipcRenderer\.send\('companion-ensure-interactive'\)/);assert.match(main,/function restoreCompanionInput\(\)/);assert.match(main,/companion\.setIgnoreMouseEvents\(false\);companion\.setFocusable\(true\)/);assert.match(main,/companionDragTimer=setInterval\(\(\)=>moveCompanionWithPointer\(screen\.getCursorScreenPoint\(\)\),16\)/);assert.match(main,/function stopCompanionDrag\(\)/);assert.match(main,/WM_LBUTTONDOWN=0x0201,WM_LBUTTONUP=0x0202,WM_LBUTTONDBLCLK=0x0203,WM_CANCELMODE=0x001f/);assert.match(main,/if\(process\.env\.PRESALESX_SMOKE==='1'\)\{app\.disableHardwareAcceleration\(\)/);assert.doesNotMatch(main,/^app\.disableHardwareAcceleration\(\);/m);assert.doesNotMatch(main,/companion\.setOpacity\(\.99\)|'screen-saver'|companion\.webContents\.invalidate\(\)/);assert.match(main,/function recoverCompanion\(\)/);});
+
+test('pet speech bubble leaves the transparent compositor when idle',()=>{const html=read('src/companion/index.html'),app=read('src/companion/app.js'),css=read('src/companion/style.css');assert.match(html,/id="bubble"[^>]*hidden/);assert.match(app,/function hideBubble\(\)/);assert.match(app,/bubble\.hidden=true/);assert.match(app,/bubble\.hidden=false/);assert.match(app,/bubbleTimer=setTimeout\(hideBubble,duration\)/);assert.match(css,/\.bubble\[hidden\]\{display:none!important\}/);assert.match(css,/\.bubble\.leaving\{opacity:0/);});
+
+test('pet drag surface is a single interactive layer on Windows and macOS',()=>{const html=read('src/companion/index.html'),css=read('src/companion/style.css'),script=read('src/companion/app.js');assert.doesNotMatch(html,/pet-native-drag/);assert.doesNotMatch(css,/-webkit-app-region:drag/);assert.match(html,/id="petInteract"/);assert.match(script,/interact\.addEventListener\('pointerdown'/);assert.match(script,/if\(pointerGesture\)window\.companion\.dragEnd\(\)/);assert.match(script,/document\.addEventListener\('visibilitychange'/);});
+
+test('Windows pet clips the defective 24px native compositor strip',()=>{const main=read('src/main.js'),css=read('src/companion/style.css');assert.match(main,/process\.platform==='win32'\)petWindow\.setShape\(\[\{x:0,y:24,width,height:height-24\}\]\)/);assert.match(css,/\.bubble\{top:25px\}/);});
+
+test('supplier review supports folders, ZIP archives, and mixed source lists',()=>{const html=read('src/ui/index.html'),app=read('src/ui/app.js'),main=read('src/main.js'),preload=read('src/preload.js');assert.match(html,/id="addSupplierZips"/);assert.match(html,/id="addSupplierFolders"/);assert.match(html,/支持混合比对/);assert.match(app,/pickFolders/);assert.match(app,/文件夹/);assert.match(main,/pick-supplier-folders/);assert.match(main,/openDirectory/);assert.match(preload,/supplierSourceApi/);});
 
 test('PowerPoint sanitization and page-image Excel export are first-class features',()=>{
   const html=read('src/ui/index.html'),app=read('src/ui/app.js'),main=read('src/main.js'),preload=read('src/preload.js'),sanitizer=read('src/watermark.js'),pages=read('src/ppt-pages.js');

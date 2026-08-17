@@ -152,6 +152,29 @@ async function analyzeZip(zipPath, supplier, progress=()=>{}) {
   await new Promise((resolve,reject)=>{ z.on('entry',async e=>{ try { if(/\/$/.test(e.fileName)){z.readEntry();return;} const b=await readEntry(z,e); const f=await analyzeBuffer(b,e.fileName,{entryPath:e.fileName});f.supplier=supplier;files.push(f); progress(++done,listing.entries.filter(x=>!(/\/$/.test(x.fileName))).length,e.fileName); z.readEntry(); }catch(x){reject(x);} }); z.on('error',reject); z.on('end',()=>{z.close();resolve();}); z.readEntry(); });
   return {id:crypto.randomUUID(),supplier,zipName:path.basename(zipPath),zipPath,zipSha256:sha(raw),manifestHash:sha(Buffer.from(files.map(f=>`${f.zipPath}:${f.sha256}`).sort().join('\n'))),fileCount:files.length,totalSize:listing.total,files};
 }
+async function listFolderFiles(folderPath) {
+  const files=[];
+  async function visit(current) {
+    const entries=await fsp.readdir(current,{withFileTypes:true});
+    entries.sort((a,b)=>a.name.localeCompare(b.name,'zh-CN'));
+    for(const entry of entries){
+      const fullPath=path.join(current,entry.name);
+      if(entry.isDirectory())await visit(fullPath);
+      else if(entry.isFile())files.push(fullPath);
+    }
+  }
+  await visit(folderPath);
+  return files;
+}
+async function analyzeFolder(folderPath,supplier,progress=()=>{}) {
+  const sourcePath=path.resolve(folderPath),sourceFiles=await listFolderFiles(sourcePath),files=[];
+  for(let i=0;i<sourceFiles.length;i++){
+    const filePath=sourceFiles[i],relativePath=path.relative(sourcePath,filePath).split(path.sep).join('/'),buffer=await fsp.readFile(filePath);
+    const file=await analyzeBuffer(buffer,relativePath,{entryPath:relativePath,sourcePath:filePath});
+    file.supplier=supplier;files.push(file);progress(i+1,sourceFiles.length,relativePath);
+  }
+  return {id:crypto.randomUUID(),supplier,zipName:path.basename(sourcePath),zipPath:sourcePath,sourceType:'folder',manifestHash:sha(Buffer.from(files.map(f=>`${f.zipPath}:${f.sha256}`).sort().join('\n'))),fileCount:files.length,totalSize:files.reduce((sum,file)=>sum+file.size,0),files};
+}
 function supplierSubmissions(archive) {
   const groups=new Map(), root=[];
   for(const f of archive.files){const parts=f.zipPath.replace(/\\/g,'/').split('/').filter(Boolean);if(parts.length>1){const supplier=parts[0];if(!groups.has(supplier))groups.set(supplier,[]);groups.get(supplier).push({...f,supplier});}else root.push(f);}
@@ -170,5 +193,5 @@ function correlate(submissions) {
   }
   return findings.sort((a,b)=>b.weight-a.weight);
 }
-async function analyzeProject(zipPaths, options={}) { const submissions=[]; for(let i=0;i<zipPaths.length;i++){const p=path.resolve(zipPaths[i]);const archive=await analyzeZip(p,path.basename(p,path.extname(p)),(d,t,n)=>options.progress?.({supplier:i+1,suppliers:zipPaths.length,done:d,total:t,name:n}));submissions.push(archive);} const audit=buildAudit(submissions);return {schemaVersion:3,appVersion:APP_VERSION,brand:'PreSalesX',id:crypto.randomUUID(),name:options.name||`供应商审查 ${new Date().toLocaleDateString('zh-CN')}`,mode:'compare',createdAt:new Date().toISOString(),method:`PreSalesX 离线确定性审查引擎 v${APP_VERSION}`,limits:LIMITS,submissions,findings:correlate(submissions),audit,operationLog:[],disclaimer:'PreSalesX 仅发现文件一致性与属性重复线索，不直接作出串标、违法或法律定性结论；结果须结合其他证据人工复核。'}; }
-module.exports={LIMITS,analyzeProject,analyzeFiles,analyzeZip,analyzeBuffer,correlate,listZip,normalize,sha,propertyGroups,openZip,readEntry,imageExtract};
+async function analyzeProject(sourcePaths, options={}) { const submissions=[]; for(let i=0;i<sourcePaths.length;i++){const p=path.resolve(sourcePaths[i]),stat=await fsp.stat(p),supplier=stat.isDirectory()?path.basename(p):path.basename(p,path.extname(p)),progress=(d,t,n)=>options.progress?.({supplier:i+1,suppliers:sourcePaths.length,done:d,total:t,name:n});if(stat.isDirectory())submissions.push(await analyzeFolder(p,supplier,progress));else if(path.extname(p).toLowerCase()==='.zip')submissions.push(await analyzeZip(p,supplier,progress));else throw new Error(`供应商来源仅支持文件夹或 ZIP：${p}`);} const audit=buildAudit(submissions);return {schemaVersion:3,appVersion:APP_VERSION,brand:'PreSalesX',id:crypto.randomUUID(),name:options.name||`供应商审查 ${new Date().toLocaleDateString('zh-CN')}`,mode:'compare',createdAt:new Date().toISOString(),method:`PreSalesX 离线确定性审查引擎 v${APP_VERSION}`,limits:LIMITS,submissions,findings:correlate(submissions),audit,operationLog:[],disclaimer:'PreSalesX 仅发现文件一致性与属性重复线索，不直接作出串标、违法或法律定性结论；结果须结合其他证据人工复核。'}; }
+module.exports={LIMITS,analyzeProject,analyzeFiles,analyzeZip,analyzeFolder,analyzeBuffer,correlate,listZip,normalize,sha,propertyGroups,openZip,readEntry,imageExtract};
