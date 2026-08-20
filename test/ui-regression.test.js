@@ -253,13 +253,13 @@ test('visible product branding uses PreSalesX consistently',()=>{
   assert.doesNotMatch(source,forbidden);
 });
 
-test('application and release artifacts use version 1.3.7 consistently',()=>{
+test('application and release artifacts use version 1.3.8 consistently',()=>{
   const manifest=JSON.parse(read('package.json'));
   const html=read('src/ui/index.html');
   const analyzer=read('src/analyzer.js');
   const workflow=read('.github/workflows/release.yml');
-  assert.equal(manifest.version,'1.3.7');
-  assert.match(html,/PreSalesX 1\.3\.7/);
+  assert.equal(manifest.version,'1.3.8');
+  assert.match(html,/PreSalesX 1\.3\.8/);
   assert.match(analyzer,/appVersion:APP_VERSION/);
   assert.match(manifest.scripts['dist:win'],/--win zip --x64/);
   assert.match(manifest.scripts['dist:mac'],/--mac zip --universal/);
@@ -340,6 +340,8 @@ test('PowerPoint sanitization and page-image Excel export are first-class featur
   const html=read('src/ui/index.html'),app=read('src/ui/app.js'),main=read('src/main.js'),preload=read('src/preload.js'),sanitizer=read('src/watermark.js'),pages=read('src/ppt-pages.js');
   assert.match(html,/data-mode="slides"/);assert.match(html,/id="slidesWorkspace"/);assert.match(html,/id="exportPptExcel"/);assert.match(app,/renderPptPages/);assert.match(app,/exportPptPages/);assert.match(main,/render-ppt-pages/);assert.match(main,/export-ppt-pages/);assert.match(preload,/pickPptFile/);assert.match(sanitizer,/powerpointWatermarkBlocks/);assert.match(pages,/workbook\.addImage/);assert.match(pages,/sheet\.addImage/);assert.match(pages,/PowerPoint\.Application/);assert.match(pages,/tell application "Keynote"/);
 });
+test('PPT pages open before progressive thumbnails and expose equal export actions',()=>{const html=read('src/ui/index.html'),app=read('src/ui/app.js'),main=read('src/main.js'),preload=read('src/preload.js'),pages=read('src/ppt-pages.js');assert.match(html,/id="exportPptImages" class="primary"/);assert.match(html,/id="exportPptExcel" class="primary" title="每行一页图片"/);assert.match(html,/id="pptPagesLoading"/);assert.match(app,/showView\('slidesWorkspace'\)[\s\S]*renderPptPages/);assert.match(app,/onPptPageRendered/);assert.match(main,/ppt-page-rendered/);assert.match(preload,/onPptPageRendered/);assert.match(pages,/watchPages/);});
+test('PPT video removal is a first-level saveable workspace',()=>{const html=read('src/ui/index.html'),app=read('src/ui/app.js'),main=read('src/main.js'),preload=read('src/preload.js'),remover=read('src/ppt-video-remover.js');assert.match(html,/data-mode="pptVideo"/);assert.match(html,/id="pptVideoWorkspace"/);assert.match(html,/id="pptVideoSave"/);assert.match(html,/海报框架帧/);assert.match(html,/视频首帧/);assert.match(app,/inspectPptVideos/);assert.match(app,/savePptWithoutVideos/);assert.match(main,/inspect-ppt-videos/);assert.match(main,/save-ppt-without-videos/);assert.match(preload,/savePptWithoutVideos/);assert.match(remover,/extractOfficeVideoFrame/);assert.match(remover,/skipEntries/);});
 
 test('media assistant keeps document actions in the header and progress in the editor pane',()=>{
   const html=read('src/ui/index.html'),css=read('src/ui/refactor.css');
