@@ -36,6 +36,7 @@
           <button class="workspace-card" data-mode="watermark"><span class="card-icon">◇</span><strong>文件脱敏</strong><p>逐项检查并清理 Word、Excel、PowerPoint 中的水印、背景、批注和关键属性。</p><em>逐项选择 · 保存或另存为</em></button>
           <button class="workspace-card" data-mode="images"><span class="card-icon">▧</span><strong>文档媒体助理</strong><p>从 Word、Excel、PowerPoint 中快速提取内置图片和视频，像相册一样预览与多选。</p><em>提取 · 预览 · 图片处理</em></button>
           <button class="workspace-card" data-mode="slides"><span class="card-icon">▥</span><strong>PPT 页面导出</strong><p>将 PowerPoint 逐页渲染为图片，可打包下载或嵌入 Excel，每行一页。</p><em>逐页图片 · Excel</em></button>
+          <button class="workspace-card" data-mode="pptVideo"><span class="card-icon">▶</span><strong>PPT 移除视频</strong><p>将 PowerPoint 中的视频替换为海报框架帧或视频首帧，显著减小文件大小。</p><em>保留画面 · 移除视频体积</em></button>
         </div>
         <div id="drop" class="drop-zone"><span class="drop-symbol">＋</span><div><strong id="dropTitle">添加供应商文件夹或 ZIP</strong><p id="dropHint">顶层文件夹名或 ZIP 文件名将作为供应商名称</p></div><button id="chooseRegularFiles" type="button" class="primary" hidden>选择文件</button><span id="supplierSourceActions" class="supplier-source-actions"><button id="addSupplierZips" type="button" class="primary">添加 ZIP</button><button id="addSupplierFolders" type="button">添加文件夹</button></span></div>
         <div id="chosen" class="chosen-list"></div>
@@ -120,13 +121,18 @@
         </aside>
       </section>
       <section id="slidesWorkspace" class="workspace-view" hidden>
-        <div class="workspace-header"><div><span class="overline">PRESENTATION EXPORT</span><h1>PPT 页面导出</h1><p id="pptPagesSummary">每一页生成一张图片。</p></div><div class="command-bar"><button class="backHome">返回</button><button id="exportPptImages">打包下载图片</button><button id="exportPptExcel" class="primary">导出 Excel</button></div></div>
-        <div id="pptPagesGallery" class="ppt-pages-gallery"></div>
+        <div class="workspace-header"><div><span class="overline">PRESENTATION EXPORT</span><h1>PPT 页面导出</h1><p id="pptPagesSummary">每一页生成一张图片。</p></div><div class="command-bar"><button class="backHome">返回</button><button id="exportPptImages" class="primary" disabled>打包下载图片</button><button id="exportPptExcel" class="primary" title="每行一页图片" disabled>导出 Excel</button></div></div>
+        <div id="pptPagesLoading" class="ppt-pages-loading" hidden><span class="spinner"></span><strong>正在逐页生成缩略图</strong><small>工作台已经打开，生成一页就会显示一页。</small></div><div id="pptPagesGallery" class="ppt-pages-gallery"></div>
+      </section>
+      <section id="pptVideoWorkspace" class="workspace-view" hidden>
+        <div class="workspace-header"><div><span class="overline">PRESENTATION OPTIMIZATION</span><h1>PPT 移除视频</h1><p id="pptVideoSummary">用静态图片替换内置视频，在保留页面视觉内容的同时减小文件大小。</p></div><div class="command-bar"><button class="backHome">返回</button><button id="pptVideoSave" disabled>保存</button><button id="pptVideoSaveAs" class="primary" disabled>另存为</button></div></div>
+        <div class="notice">默认优先保留 PowerPoint 已有的海报框架帧；也可以逐项改为提取视频首帧。原文件只有在点击“保存”后才会修改。</div>
+        <div class="ppt-video-layout"><aside id="pptVideoFile" class="ppt-video-file"></aside><section><div class="ppt-video-toolbar"><label><input id="pptVideoSelectAll" type="checkbox"> 全选视频</label><span id="pptVideoSelectionCount">已选择 0 项</span></div><div id="pptVideoList" class="ppt-video-list"></div></section></div>
       </section>
     </main>
     <div id="monitorToastStack" class="monitor-toast-stack" aria-live="polite"></div>
     <aside id="propertyDrawer" class="property-drawer" hidden><div class="drawer-head"><div><span>属性编辑器</span><strong id="drawerContext"></strong></div><button id="closeDrawer" aria-label="关闭">×</button></div><section id="drawerDetail" class="drawer-body"></section></aside>
-    <footer class="statusbar"><span><i></i> 本地模式</span><span id="statusText">就绪</span><span>PreSalesX 1.3.7</span></footer>
+    <footer class="statusbar"><span><i></i> 本地模式</span><span id="statusText">就绪</span><span>PreSalesX 1.3.8</span></footer>
   </div>
   <script src="app.js"></script>
 </body>

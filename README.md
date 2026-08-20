@@ -4,11 +4,11 @@
   <p>本地化售前文档审查与元数据编辑工作台</p>
 </div>
 
-PreSalesX 是一款默认离线运行的桌面专业工具，面向方案、报价、资质材料和其他售前文档。它提供“多家供应商批量审查”“文件属性编辑”“文件脱敏”和“文档媒体助理”四个独立工作台，并配有可拖动、可互动的桌面数字伙伴。
+PreSalesX 是一款默认离线运行的桌面专业工具，面向方案、报价、资质材料和其他售前文档。它提供供应商批量审查、文件属性编辑、文件脱敏、文档媒体处理、PPT 页面导出和 PPT 视频瘦身等独立工作台，并配有可拖动、可互动的桌面数字伙伴。
 
 检测结果只用于提供人工复核线索，不直接作出串标、违法或其他法律定性结论。
 
-## 四个独立工作台
+## 独立工作台
 
 ### 多家供应商批量审查
 
@@ -40,11 +40,11 @@ Info 与 XMP 默认联动，修改一侧会同步另一侧。也可以按属性�
 ### 文件脱敏
 
 - 采用“文件 + 同行前后对照”工作台，不打开嵌套弹窗；每个项目的原值与脱敏结果由同一个 DOM 行渲染，勾选后右侧直接显示 `<空>`。
-- Word 水印统一列为一项；Excel 背景按 Sheet 分项；Word 和 Excel 批注逐条列出。
+- Word 水印统一列为一项；Excel 背景按 Sheet 分项；Word、Excel 和 PowerPoint 批注逐条列出。
 - 水印和工作表背景默认全选，也可按“水印与背景”“批注”类型选择或一键全选。
 - 不提供文件内容预览；界面只列出经过结构化检测确认的可脱敏项目，减少等待和误导。
 - Word 处于修订状态时会显示醒目提示；脱敏不会擅自接受或拒绝修订。
-- 文件脱敏暂只支持 Word 和 Excel，不接受 PDF。
+- 文件脱敏支持 Word、Excel 和 PowerPoint，不接受 PDF。
 - 每次只处理左侧当前选中的文件；“保存”更新当前文件，“另存为”可选择路径并修改文件名，宏与其他未处理的包内容原样保留。
 
 ### 文档媒体助理
@@ -56,6 +56,17 @@ Info 与 XMP 默认联动，修改一侧会同步另一侧。也可以按属性�
 - 底部任务区默认显示处理进度；展开后可查看当前步骤、实际参数和类似 Terminal 的执行记录。
 - 导出单个源文件的媒体时，ZIP 沿用源文件名；媒体条目保留原始文件名。多个源文件按来源目录组织，避免同名覆盖。
 - FFmpeg 与 FFprobe 已包含在 Windows/macOS 发布包中，用户无需另行安装。
+
+### PPT 页面导出
+
+- 选择 PPTX/PPTM 后立即打开工作台，不再等待所有页面渲染完成；页面缩略图会在 PowerPoint 或 Keynote 生成后逐页出现。
+- “打包下载图片”和“导出 Excel”是同级输出操作。Excel 文件每行嵌入一页图片，便于后续整理与审阅。
+
+### PPT 移除视频
+
+- 扫描 PPTX/PPTM 中的内置视频，列出视频大小、所在页码和海报框架缩略图。
+- 可逐项选择保留 PowerPoint 已有的海报框架帧，或由内置 FFmpeg 提取视频首帧作为替代画面。
+- 保存时删除视频二进制、视频关系及播放标记，同时保留静态替代画面；支持直接保存和另存为。
 
 ### 桌面数字伙伴
 
@@ -98,7 +109,7 @@ npm.cmd run dist:win
 Windows 免安装完整包输出为：
 
 ```text
-dist\PreSalesX-1.3.7-Windows-x64.zip
+dist\PreSalesX-1.3.8-Windows-x64.zip
 ```
 
 解压后直接运行 `PreSalesX.exe`，无需另行安装 Node.js、Electron 或 npm 依赖。
@@ -109,9 +120,9 @@ macOS Universal 免安装完整包需要在 macOS 构建机上生成：
 npm run dist:mac
 ```
 
-输出为 `dist/PreSalesX-1.3.7-macOS-universal.zip`，同时包含 Intel 与 Apple Silicon 所需运行代码。解压后运行 `PreSalesX.app`，无需另行安装 Node.js 或 npm 依赖。正式发布包使用 Developer ID 签名和 Apple 公证；未配置正式证书的测试构建会使用临时签名。
+输出为 `dist/PreSalesX-1.3.8-macOS-universal.zip`，同时包含 Intel 与 Apple Silicon 所需运行代码。解压后运行 `PreSalesX.app`，无需另行安装 Node.js 或 npm 依赖。正式发布包使用 Developer ID 签名和 Apple 公证；未配置正式证书的测试构建会使用临时签名。
 
-推送 `v1.3.7` 标签后，GitHub Actions 会分别在 Windows 和 macOS 构建机上生成上述两个 ZIP，并自动附加到 GitHub Release。
+推送 `v1.3.8` 标签后，GitHub Actions 会分别在 Windows 和 macOS 构建机上生成上述两个 ZIP，并自动附加到 GitHub Release。
 
 正式对外分发时应配置对应平台的代码签名与 macOS 公证。
 
@@ -144,6 +155,8 @@ node src\cli.js tests\供应商A.zip tests\供应商B.zip --out tests-output
 - `src/cleaner.js`：Office/PDF 元数据写入、Info/XMP 同步和写后验证。
 - `src/office-images.js`：Office 内置图片与视频提取、媒体处理和导出。
 - `src/video-processor.js`：视频探测、体积预估与 FFmpeg 压缩任务。
+- `src/ppt-pages.js`：通过 PowerPoint/Keynote 逐页渲染并导出图片或 Excel。
+- `src/ppt-video-remover.js`：识别 PPT 视频关系，以海报框架帧或首帧替换并移除视频数据。
 - `src/reports.js`：项目、供应商、相同文件、属性重复与操作记录报告。
 - `src/ui`：专业工具式信息架构、供应商工作台与属性编辑器。
 

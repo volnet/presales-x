@@ -1,6 +1,6 @@
 {
   "name": "presalesx",
-  "version": "1.3.7",
+  "version": "1.3.8",
   "description": "PreSalesX pre-sales document review and metadata editor",
   "author": "PreSalesX",
   "main": "src/main.js",
